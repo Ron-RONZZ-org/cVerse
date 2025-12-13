@@ -209,7 +209,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Qualities
-  if (data.qualities) {
+  if (data.qualities && data.qualities.trim()) {
     if (y > 240) {
       doc.addPage()
       y = 20
@@ -232,7 +232,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Skills
-  if (data.skills) {
+  if (data.skills && data.skills.trim()) {
     if (y > 240) {
       doc.addPage()
       y = 20
@@ -255,7 +255,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Interests
-  if (data.interests) {
+  if (data.interests && data.interests.trim()) {
     if (y > 240) {
       doc.addPage()
       y = 20
