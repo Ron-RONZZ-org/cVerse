@@ -7,6 +7,7 @@ export const useCVData = () => {
     personal: {
       name: '',
       email: '',
+      headline: '',
       location: '',
       phone: '',
       website: '',
@@ -130,6 +131,7 @@ export const useCVData = () => {
       personal: {
         name: '',
         email: '',
+        headline: '',
         location: '',
         phone: '',
         website: '',

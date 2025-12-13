@@ -58,10 +58,11 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     // Simple markdown parsing - convert to plain text with preserved structure
     let text = markdown
     // Remove bold/italic markers but keep the text
-    text = text.replace(/\*\*([^*]+)\*\*/g, '$1')
-    text = text.replace(/\*([^*]+)\*/g, '$1')
-    text = text.replace(/__([^_]+)__/g, '$1')
-    text = text.replace(/_([^_]+)_/g, '$1')
+    // Use non-greedy matching with .+? to properly handle multiple instances
+    text = text.replace(/\*\*(.+?)\*\*/g, '$1')
+    text = text.replace(/\*(.+?)\*/g, '$1')
+    text = text.replace(/__(.+?)__/g, '$1')
+    text = text.replace(/_(.+?)_/g, '$1')
     // Convert bullet points
     text = text.replace(/^[*-]\s+/gm, '• ')
     return text
@@ -73,7 +74,15 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   doc.text(data.personal.name || '', leftMargin, y)
   y += 8
   
-  // Draw a line under the name
+  // Headline (if provided)
+  if (data.personal.headline) {
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'italic')
+    doc.text(data.personal.headline, leftMargin, y)
+    y += 8
+  }
+  
+  // Draw a line under the name/headline
   doc.setLineWidth(0.5)
   doc.line(leftMargin, y, rightMargin, y)
   y += 8

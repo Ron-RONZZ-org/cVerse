@@ -13,6 +13,8 @@
     "namePlaceholder": "Enter your full name",
     "email": "Email",
     "emailPlaceholder": "your email here",
+    "headline": "Professional Headline",
+    "headlinePlaceholder": "e.g., Senior Software Engineer | Full-Stack Developer",
     "location": "Location",
     "locationPlaceholder": "City, Country",
     "phone": "Phone Number",
@@ -60,15 +62,15 @@
   },
   "qualities": {
     "title": "Qualities",
-    "placeholder": "List your key qualities and soft skills (Markdown supported)"
+    "placeholder": "List your key qualities and soft skills (Markdown supported)\ne.g.:\n- Creativity\n- Autonomy\n- Priority management\n- Sense of responsibility"
   },
   "skills": {
     "title": "Skills",
-    "placeholder": "List your technical and professional skills (Markdown supported)"
+    "placeholder": "List your technical and professional skills (Markdown supported)\ne.g.:\n- JavaScript, TypeScript\n- Vue.js, React\n- Node.js, Python\n- SQL, NoSQL databases"
   },
   "interests": {
     "title": "Interests",
-    "placeholder": "List your hobbies and interests (Markdown supported)"
+    "placeholder": "List your hobbies and interests (Markdown supported)\ne.g.:\n- Photography\n- Hiking\n- Open source contributions\n- Reading"
   },
   "sort": {
     "newest": "Sort: Newest First",
