@@ -11,7 +11,7 @@ cVerse is a serverless, frontend-only CV (resume) generator application built wi
 - **Internationalization**: vue-i18n for English/French support
 - **PDF Generation**: jsPDF library
 - **Data Storage**: Browser localStorage (no backend)
-- **Deployment**: Static site generation (SSR disabled)
+- **Deployment**: Static site generation with client-side rendering (SSR disabled, SPA mode)
 
 ## Code Style and Conventions
 
