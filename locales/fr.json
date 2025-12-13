@@ -1,0 +1,69 @@
+{
+  "app": {
+    "title": "Générateur de CV",
+    "language": "Langue",
+    "save": "Enregistrer en JSON",
+    "load": "Charger depuis JSON",
+    "clear": "Tout effacer",
+    "export": "Exporter en PDF"
+  },
+  "personal": {
+    "title": "Informations Personnelles",
+    "name": "Nom Complet",
+    "namePlaceholder": "Entrez votre nom complet",
+    "email": "Email",
+    "emailPlaceholder": "votre email ici",
+    "location": "Localisation",
+    "locationPlaceholder": "Ville, Pays",
+    "phone": "Numéro de Téléphone",
+    "phonePlaceholder": "+33 1 23 45 67 89",
+    "website": "Site Web",
+    "websitePlaceholder": "https://votresite.com",
+    "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "https://linkedin.com/in/votreprofil",
+    "age": "Âge",
+    "agePlaceholder": "30",
+    "nationality": "Nationalité",
+    "nationalityPlaceholder": "Votre nationalité"
+  },
+  "experience": {
+    "title": "Expérience Professionnelle",
+    "add": "Ajouter une expérience",
+    "jobTitle": "Titre du Poste",
+    "jobTitlePlaceholder": "ex: Ingénieur Logiciel Senior",
+    "timePeriod": "Période",
+    "startDate": "Date de début (AAAA-MM)",
+    "endDate": "Date de fin (AAAA-MM)",
+    "location": "Localisation",
+    "locationPlaceholder": "Ville, Pays",
+    "description": "Description",
+    "descriptionPlaceholder": "Décrivez vos responsabilités et réalisations (Markdown supporté)",
+    "remove": "Supprimer",
+    "moveUp": "Monter",
+    "moveDown": "Descendre"
+  },
+  "education": {
+    "title": "Formation",
+    "add": "Ajouter une formation",
+    "degree": "Diplôme / Programme",
+    "degreePlaceholder": "ex: Licence en Informatique",
+    "timePeriod": "Période",
+    "startDate": "Date de début (AAAA-MM)",
+    "endDate": "Date de fin (AAAA-MM)",
+    "location": "Établissement / Localisation",
+    "locationPlaceholder": "Nom de l'université, Ville",
+    "description": "Détails",
+    "descriptionPlaceholder": "Informations supplémentaires (Markdown supporté)",
+    "remove": "Supprimer",
+    "moveUp": "Monter",
+    "moveDown": "Descendre"
+  },
+  "qualities": {
+    "title": "Qualités",
+    "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)"
+  },
+  "skills": {
+    "title": "Compétences",
+    "placeholder": "Listez vos compétences techniques et professionnelles (Markdown supporté)"
+  }
+}
