@@ -24,11 +24,15 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const doc = new jsPDF()
   const t = translations[options.locale]
   
-  let y = 20 // Current Y position
+  // Page layout constants
+  const PAGE_TOP_MARGIN = 20
+  const PAGE_BOTTOM_MARGIN = 280
   const leftMargin = 20
   const rightMargin = 190
   const lineHeight = 7
   const sectionSpacing = 10
+  
+  let y = PAGE_TOP_MARGIN // Current Y position
 
   // Helper function to add text with word wrap
   const addText = (text: string, x: number, yPos: number, maxWidth: number, size: number = 10, style: 'normal' | 'bold' = 'normal') => {
@@ -36,9 +40,9 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     doc.setFont('helvetica', style)
     const lines = doc.splitTextToSize(text, maxWidth)
     lines.forEach((line: string) => {
-      if (yPos > 280) {
+      if (yPos > PAGE_BOTTOM_MARGIN) {
         doc.addPage()
-        yPos = 20
+        yPos = PAGE_TOP_MARGIN
       }
       doc.text(line, x, yPos)
       yPos += lineHeight

@@ -49,7 +49,7 @@ export const useCVData = () => {
   // Add experience block
   const addExperience = () => {
     cvData.value.experience.push({
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       title: '',
       startDate: '',
       endDate: '',
@@ -76,7 +76,7 @@ export const useCVData = () => {
   // Add education block
   const addEducation = () => {
     cvData.value.education.push({
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       degree: '',
       startDate: '',
       endDate: '',
