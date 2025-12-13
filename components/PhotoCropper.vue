@@ -48,7 +48,9 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 const image = ref<HTMLImageElement | null>(null)
 const cropBox = ref({ x: 50, y: 50, size: 200 })
 const isDragging = ref(false)
+const isResizing = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
+const resizeStartSize = ref(0)
 
 // Load and draw image when modal opens
 watch(() => props.show, (newShow) => {
@@ -135,11 +137,17 @@ const drawCanvas = () => {
   ctx.strokeRect(cropBox.value.x, cropBox.value.y, cropBox.value.size, cropBox.value.size)
   
   // Draw corner handles
-  const handleSize = 10
+  const handleSize = 12
   ctx.fillStyle = '#3498db'
+  
+  // Top-left corner
   ctx.fillRect(cropBox.value.x - handleSize / 2, cropBox.value.y - handleSize / 2, handleSize, handleSize)
+  // Top-right corner
   ctx.fillRect(cropBox.value.x + cropBox.value.size - handleSize / 2, cropBox.value.y - handleSize / 2, handleSize, handleSize)
+  // Bottom-left corner
   ctx.fillRect(cropBox.value.x - handleSize / 2, cropBox.value.y + cropBox.value.size - handleSize / 2, handleSize, handleSize)
+  // Bottom-right corner (resize handle) - make it stand out
+  ctx.fillStyle = '#e74c3c'
   ctx.fillRect(cropBox.value.x + cropBox.value.size - handleSize / 2, cropBox.value.y + cropBox.value.size - handleSize / 2, handleSize, handleSize)
 }
 
@@ -150,7 +158,24 @@ const startDrag = (e: MouseEvent) => {
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
   
-  // Check if click is inside crop box
+  const handleSize = 10
+  const cornerThreshold = 15
+  
+  // Check if click is on bottom-right corner (resize handle)
+  const bottomRightX = cropBox.value.x + cropBox.value.size
+  const bottomRightY = cropBox.value.y + cropBox.value.size
+  
+  if (
+    Math.abs(x - bottomRightX) < cornerThreshold &&
+    Math.abs(y - bottomRightY) < cornerThreshold
+  ) {
+    isResizing.value = true
+    resizeStartSize.value = cropBox.value.size
+    dragOffset.value = { x, y }
+    return
+  }
+  
+  // Check if click is inside crop box (for dragging)
   if (
     x >= cropBox.value.x &&
     x <= cropBox.value.x + cropBox.value.size &&
@@ -166,21 +191,44 @@ const startDrag = (e: MouseEvent) => {
 }
 
 const drag = (e: MouseEvent) => {
-  if (!isDragging.value || !canvas.value) return
+  if (!canvas.value) return
   
   const rect = canvas.value.getBoundingClientRect()
-  const x = e.clientX - rect.left - dragOffset.value.x
-  const y = e.clientY - rect.top - dragOffset.value.y
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
   
-  // Constrain to canvas bounds
-  cropBox.value.x = Math.max(0, Math.min(x, canvas.value.width - cropBox.value.size))
-  cropBox.value.y = Math.max(0, Math.min(y, canvas.value.height - cropBox.value.size))
-  
-  drawCanvas()
+  if (isResizing.value) {
+    // Calculate new size based on diagonal movement
+    const dx = x - dragOffset.value.x
+    const dy = y - dragOffset.value.y
+    const delta = Math.max(dx, dy)
+    
+    const newSize = resizeStartSize.value + delta
+    
+    // Constrain size to canvas bounds
+    const maxSize = Math.min(
+      canvas.value.width - cropBox.value.x,
+      canvas.value.height - cropBox.value.y
+    )
+    const minSize = 50  // Minimum crop box size
+    
+    cropBox.value.size = Math.max(minSize, Math.min(newSize, maxSize))
+    drawCanvas()
+  } else if (isDragging.value) {
+    const newX = x - dragOffset.value.x
+    const newY = y - dragOffset.value.y
+    
+    // Constrain to canvas bounds
+    cropBox.value.x = Math.max(0, Math.min(newX, canvas.value.width - cropBox.value.size))
+    cropBox.value.y = Math.max(0, Math.min(newY, canvas.value.height - cropBox.value.size))
+    
+    drawCanvas()
+  }
 }
 
 const endDrag = () => {
   isDragging.value = false
+  isResizing.value = false
 }
 
 const handleCrop = () => {

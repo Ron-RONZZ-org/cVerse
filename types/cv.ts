@@ -36,4 +36,5 @@ export interface CVData {
   qualities: string
   skills: string
   interests: string
+  dividerColor?: string  // Color for section divider lines in PDF
 }

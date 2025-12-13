@@ -21,7 +21,7 @@
     "uploadPhoto": "Télécharger une Photo",
     "removePhoto": "Supprimer la Photo",
     "cropPhoto": "Recadrer la Photo",
-    "cropInstructions": "Faites glisser le carré pour sélectionner la zone à recadrer",
+    "cropInstructions": "Faites glisser le carré pour le déplacer. Faites glisser le coin rouge pour le redimensionner.",
     "location": "Localisation",
     "locationPlaceholder": "Ville, Pays",
     "phone": "Numéro de Téléphone",
@@ -82,5 +82,9 @@
   "sort": {
     "newest": "Trier : Plus récent d'abord",
     "oldest": "Trier : Plus ancien d'abord"
+  },
+  "pdfSettings": {
+    "title": "Paramètres PDF",
+    "dividerColor": "Couleur des Séparateurs de Section"
   }
 }

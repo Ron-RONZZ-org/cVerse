@@ -21,7 +21,7 @@
     "uploadPhoto": "Upload Photo",
     "removePhoto": "Remove Photo",
     "cropPhoto": "Crop Photo",
-    "cropInstructions": "Drag the square to select the area to crop",
+    "cropInstructions": "Drag the square to move it. Drag the red corner to resize it.",
     "location": "Location",
     "locationPlaceholder": "City, Country",
     "phone": "Phone Number",
@@ -82,5 +82,9 @@
   "sort": {
     "newest": "Sort: Newest First",
     "oldest": "Sort: Oldest First"
+  },
+  "pdfSettings": {
+    "title": "PDF Settings",
+    "dividerColor": "Section Divider Color"
   }
 }

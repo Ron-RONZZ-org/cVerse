@@ -41,6 +41,19 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   // If there's a photo, we'll render it in the top right
   // and adjust the left column width accordingly
   const contentWidth = hasPhoto ? 115 : 170  // Width for main content when photo is present
+  
+  // Get divider color from data, default to black
+  const dividerColor = data.dividerColor || '#000000'
+  // Convert hex color to RGB
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 }
+  }
+  const dividerRGB = hexToRgb(dividerColor)
 
   // Helper function to add text with word wrap
   const addText = (text: string, x: number, yPos: number, maxWidth: number, size: number = 10, style: 'normal' | 'bold' = 'normal') => {
@@ -107,8 +120,11 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
   
   // Draw a line under the name/headline
+  // Adjust line width to not overlap with photo
+  const lineEndX = hasPhoto ? photoColumnX - 5 : rightMargin
   doc.setLineWidth(0.5)
-  doc.line(leftMargin, y, rightMargin, y)
+  doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
+  doc.line(leftMargin, y, lineEndX, y)
   y += 8
 
   doc.setFontSize(10)
@@ -189,6 +205,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -238,6 +255,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -287,6 +305,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -310,6 +329,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -333,6 +353,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
