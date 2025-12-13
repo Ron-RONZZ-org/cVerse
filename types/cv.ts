@@ -33,4 +33,5 @@ export interface CVData {
   education: EducationBlock[]
   qualities: string
   skills: string
+  interests: string
 }

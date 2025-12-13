@@ -10,13 +10,15 @@ const translations = {
     experience: 'Professional Experience',
     education: 'Education',
     qualities: 'Qualities',
-    skills: 'Skills'
+    skills: 'Skills',
+    interests: 'Interests'
   },
   fr: {
     experience: 'Expérience Professionnelle',
     education: 'Formation',
     qualities: 'Qualités',
-    skills: 'Compétences'
+    skills: 'Compétences',
+    interests: 'Centres d\'Intérêt'
   }
 }
 
@@ -65,40 +67,42 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     return text
   }
 
-  // Personal Information Header
-  doc.setFontSize(18)
+  // Personal Information Header - Improved formatting
+  doc.setFontSize(20)
   doc.setFont('helvetica', 'bold')
   doc.text(data.personal.name || '', leftMargin, y)
-  y += 10
+  y += 8
+  
+  // Draw a line under the name
+  doc.setLineWidth(0.5)
+  doc.line(leftMargin, y, rightMargin, y)
+  y += 8
 
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   
-  if (data.personal.email) {
-    doc.text(`Email: ${data.personal.email}`, leftMargin, y)
+  // Contact information in a more compact format
+  const contactInfo = []
+  if (data.personal.email) contactInfo.push(data.personal.email)
+  if (data.personal.phone) contactInfo.push(data.personal.phone)
+  if (data.personal.location) contactInfo.push(data.personal.location)
+  
+  if (contactInfo.length > 0) {
+    doc.text(contactInfo.join(' | '), leftMargin, y)
     y += lineHeight
   }
   
-  if (data.personal.phone) {
-    doc.text(`${options.locale === 'fr' ? 'Tél' : 'Phone'}: ${data.personal.phone}`, leftMargin, y)
+  // Additional info on next line
+  const additionalInfo = []
+  if (data.personal.age) additionalInfo.push(`${options.locale === 'fr' ? 'Âge' : 'Age'}: ${data.personal.age}`)
+  if (data.personal.nationality) additionalInfo.push(`${options.locale === 'fr' ? 'Nationalité' : 'Nationality'}: ${data.personal.nationality}`)
+  
+  if (additionalInfo.length > 0) {
+    doc.text(additionalInfo.join(' | '), leftMargin, y)
     y += lineHeight
   }
   
-  if (data.personal.location) {
-    doc.text(`${options.locale === 'fr' ? 'Lieu' : 'Location'}: ${data.personal.location}`, leftMargin, y)
-    y += lineHeight
-  }
-  
-  if (data.personal.age) {
-    doc.text(`${options.locale === 'fr' ? 'Âge' : 'Age'}: ${data.personal.age}`, leftMargin, y)
-    y += lineHeight
-  }
-  
-  if (data.personal.nationality) {
-    doc.text(`${options.locale === 'fr' ? 'Nationalité' : 'Nationality'}: ${data.personal.nationality}`, leftMargin, y)
-    y += lineHeight
-  }
-  
+  // Web links
   if (data.personal.website) {
     doc.text(`Web: ${data.personal.website}`, leftMargin, y)
     y += lineHeight
@@ -115,8 +119,12 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.experience.length > 0) {
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
-    doc.text(t.experience, leftMargin, y)
-    y += 8
+    doc.text(t.experience.toUpperCase(), leftMargin, y)
+    y += 2
+    // Draw line under section title
+    doc.setLineWidth(0.3)
+    doc.line(leftMargin, y, rightMargin, y)
+    y += 6
     
     doc.setFontSize(10)
     
@@ -160,8 +168,12 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
-    doc.text(t.education, leftMargin, y)
-    y += 8
+    doc.text(t.education.toUpperCase(), leftMargin, y)
+    y += 2
+    // Draw line under section title
+    doc.setLineWidth(0.3)
+    doc.line(leftMargin, y, rightMargin, y)
+    y += 6
     
     doc.setFontSize(10)
     
@@ -197,7 +209,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Qualities
-  if (data.qualities) {
+  if (data.qualities && data.qualities.trim()) {
     if (y > 240) {
       doc.addPage()
       y = 20
@@ -205,8 +217,12 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
-    doc.text(t.qualities, leftMargin, y)
-    y += 8
+    doc.text(t.qualities.toUpperCase(), leftMargin, y)
+    y += 2
+    // Draw line under section title
+    doc.setLineWidth(0.3)
+    doc.line(leftMargin, y, rightMargin, y)
+    y += 6
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
@@ -216,7 +232,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Skills
-  if (data.skills) {
+  if (data.skills && data.skills.trim()) {
     if (y > 240) {
       doc.addPage()
       y = 20
@@ -224,13 +240,40 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
-    doc.text(t.skills, leftMargin, y)
-    y += 8
+    doc.text(t.skills.toUpperCase(), leftMargin, y)
+    y += 2
+    // Draw line under section title
+    doc.setLineWidth(0.3)
+    doc.line(leftMargin, y, rightMargin, y)
+    y += 6
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
     const parsedSkills = parseMarkdown(data.skills)
     y = addText(parsedSkills, leftMargin, y, rightMargin - leftMargin)
+    y += sectionSpacing
+  }
+
+  // Interests
+  if (data.interests && data.interests.trim()) {
+    if (y > 240) {
+      doc.addPage()
+      y = 20
+    }
+    
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(t.interests.toUpperCase(), leftMargin, y)
+    y += 2
+    // Draw line under section title
+    doc.setLineWidth(0.3)
+    doc.line(leftMargin, y, rightMargin, y)
+    y += 6
+    
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    const parsedInterests = parseMarkdown(data.interests)
+    y = addText(parsedInterests, leftMargin, y, rightMargin - leftMargin)
   }
 
   // Save the PDF

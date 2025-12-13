@@ -17,7 +17,8 @@ export const useCVData = () => {
     experience: [],
     education: [],
     qualities: '',
-    skills: ''
+    skills: '',
+    interests: ''
   }))
 
   // Load data from localStorage on initialization
@@ -26,7 +27,12 @@ export const useCVData = () => {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         try {
-          cvData.value = JSON.parse(stored)
+          const loadedData = JSON.parse(stored)
+          // Ensure interests field exists for backward compatibility
+          if (!loadedData.interests) {
+            loadedData.interests = ''
+          }
+          cvData.value = loadedData
         } catch (e) {
           console.error('Failed to parse stored CV data:', e)
         }
@@ -100,6 +106,24 @@ export const useCVData = () => {
     }
   }
 
+  // Sort experience by date
+  const sortExperience = (order: 'newest' | 'oldest') => {
+    cvData.value.experience.sort((a, b) => {
+      const dateA = a.startDate || ''
+      const dateB = b.startDate || ''
+      return order === 'newest' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB)
+    })
+  }
+
+  // Sort education by date
+  const sortEducation = (order: 'newest' | 'oldest') => {
+    cvData.value.education.sort((a, b) => {
+      const dateA = a.startDate || ''
+      const dateB = b.startDate || ''
+      return order === 'newest' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB)
+    })
+  }
+
   // Clear all data
   const clearData = () => {
     cvData.value = {
@@ -116,7 +140,8 @@ export const useCVData = () => {
       experience: [],
       education: [],
       qualities: '',
-      skills: ''
+      skills: '',
+      interests: ''
     }
     if (process.client) {
       localStorage.removeItem(STORAGE_KEY)
@@ -160,9 +185,11 @@ export const useCVData = () => {
     addExperience,
     removeExperience,
     moveExperience,
+    sortExperience,
     addEducation,
     removeEducation,
     moveEducation,
+    sortEducation,
     clearData,
     exportToJSON,
     importFromJSON

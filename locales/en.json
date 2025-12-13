@@ -65,5 +65,13 @@
   "skills": {
     "title": "Skills",
     "placeholder": "List your technical and professional skills (Markdown supported)"
+  },
+  "interests": {
+    "title": "Interests",
+    "placeholder": "List your hobbies and interests (Markdown supported)"
+  },
+  "sort": {
+    "newest": "Sort: Newest First",
+    "oldest": "Sort: Oldest First"
   }
 }
