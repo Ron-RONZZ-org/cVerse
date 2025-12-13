@@ -65,5 +65,13 @@
   "skills": {
     "title": "Compétences",
     "placeholder": "Listez vos compétences techniques et professionnelles (Markdown supporté)"
+  },
+  "interests": {
+    "title": "Centres d'Intérêt",
+    "placeholder": "Listez vos hobbies et centres d'intérêt (Markdown supporté)"
+  },
+  "sort": {
+    "newest": "Trier : Plus récent d'abord",
+    "oldest": "Trier : Plus ancien d'abord"
   }
 }

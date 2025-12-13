@@ -41,9 +41,17 @@
       <div class="section">
         <div class="section-header">
           <h2>{{ t('experience.title') }}</h2>
-          <button @click="addExperience" class="btn btn-primary">
-            {{ t('experience.add') }}
-          </button>
+          <div class="header-actions">
+            <button @click="sortExperience('newest')" class="btn btn-secondary btn-small">
+              {{ t('sort.newest') }}
+            </button>
+            <button @click="sortExperience('oldest')" class="btn btn-secondary btn-small">
+              {{ t('sort.oldest') }}
+            </button>
+            <button @click="addExperience" class="btn btn-primary">
+              {{ t('experience.add') }}
+            </button>
+          </div>
         </div>
         <ExperienceBlock
           v-for="(exp, index) in cvData.experience"
@@ -64,9 +72,17 @@
       <div class="section">
         <div class="section-header">
           <h2>{{ t('education.title') }}</h2>
-          <button @click="addEducation" class="btn btn-primary">
-            {{ t('education.add') }}
-          </button>
+          <div class="header-actions">
+            <button @click="sortEducation('newest')" class="btn btn-secondary btn-small">
+              {{ t('sort.newest') }}
+            </button>
+            <button @click="sortEducation('oldest')" class="btn btn-secondary btn-small">
+              {{ t('sort.oldest') }}
+            </button>
+            <button @click="addEducation" class="btn btn-primary">
+              {{ t('education.add') }}
+            </button>
+          </div>
         </div>
         <EducationBlock
           v-for="(edu, index) in cvData.education"
@@ -108,6 +124,19 @@
           ></textarea>
         </div>
       </div>
+
+      <!-- Interests -->
+      <div class="section">
+        <h2>{{ t('interests.title') }}</h2>
+        <div class="form-group">
+          <textarea 
+            v-model="cvData.interests" 
+            :placeholder="t('interests.placeholder')"
+            rows="6"
+            class="full-width"
+          ></textarea>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -123,9 +152,11 @@ const {
   addExperience,
   removeExperience,
   moveExperience,
+  sortExperience,
   addEducation,
   removeEducation,
   moveEducation,
+  sortEducation,
   clearData,
   exportToJSON,
   importFromJSON
@@ -258,6 +289,14 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 h2 {
@@ -334,6 +373,11 @@ textarea.full-width:focus {
   background: #c0392b;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btn-small {
+  padding: 8px 15px;
+  font-size: 13px;
 }
 
 @media (max-width: 768px) {

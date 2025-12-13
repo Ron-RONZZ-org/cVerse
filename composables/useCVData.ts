@@ -17,7 +17,8 @@ export const useCVData = () => {
     experience: [],
     education: [],
     qualities: '',
-    skills: ''
+    skills: '',
+    interests: ''
   }))
 
   // Load data from localStorage on initialization
@@ -100,6 +101,24 @@ export const useCVData = () => {
     }
   }
 
+  // Sort experience by date
+  const sortExperience = (order: 'newest' | 'oldest') => {
+    cvData.value.experience.sort((a, b) => {
+      const dateA = a.startDate || ''
+      const dateB = b.startDate || ''
+      return order === 'newest' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB)
+    })
+  }
+
+  // Sort education by date
+  const sortEducation = (order: 'newest' | 'oldest') => {
+    cvData.value.education.sort((a, b) => {
+      const dateA = a.startDate || ''
+      const dateB = b.startDate || ''
+      return order === 'newest' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB)
+    })
+  }
+
   // Clear all data
   const clearData = () => {
     cvData.value = {
@@ -116,7 +135,8 @@ export const useCVData = () => {
       experience: [],
       education: [],
       qualities: '',
-      skills: ''
+      skills: '',
+      interests: ''
     }
     if (process.client) {
       localStorage.removeItem(STORAGE_KEY)
@@ -160,9 +180,11 @@ export const useCVData = () => {
     addExperience,
     removeExperience,
     moveExperience,
+    sortExperience,
     addEducation,
     removeEducation,
     moveEducation,
+    sortEducation,
     clearData,
     exportToJSON,
     importFromJSON
