@@ -22,6 +22,16 @@ const translations = {
   }
 }
 
+// Helper function to convert hex color to RGB
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 0, g: 0, b: 0 }
+}
+
 export const generatePDF = (data: CVData, options: PDFOptions) => {
   const doc = new jsPDF()
   const t = translations[options.locale]
@@ -44,15 +54,6 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   
   // Get divider color from data, default to black
   const dividerColor = data.dividerColor || '#000000'
-  // Convert hex color to RGB
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : { r: 0, g: 0, b: 0 }
-  }
   const dividerRGB = hexToRgb(dividerColor)
 
   // Helper function to add text with word wrap

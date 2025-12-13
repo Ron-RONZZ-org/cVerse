@@ -43,6 +43,9 @@ const emit = defineEmits<{
 // Constants
 const CROP_OUTPUT_SIZE = 200  // Output size in pixels
 const JPEG_QUALITY = 0.9  // JPEG compression quality (0-1)
+const HANDLE_SIZE = 12  // Size of corner handles in pixels
+const RESIZE_CORNER_THRESHOLD = 15  // Distance threshold for resize corner detection
+const MIN_CROP_SIZE = 50  // Minimum crop box size in pixels
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 const image = ref<HTMLImageElement | null>(null)
@@ -137,18 +140,17 @@ const drawCanvas = () => {
   ctx.strokeRect(cropBox.value.x, cropBox.value.y, cropBox.value.size, cropBox.value.size)
   
   // Draw corner handles
-  const handleSize = 12
   ctx.fillStyle = '#3498db'
   
   // Top-left corner
-  ctx.fillRect(cropBox.value.x - handleSize / 2, cropBox.value.y - handleSize / 2, handleSize, handleSize)
+  ctx.fillRect(cropBox.value.x - HANDLE_SIZE / 2, cropBox.value.y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE)
   // Top-right corner
-  ctx.fillRect(cropBox.value.x + cropBox.value.size - handleSize / 2, cropBox.value.y - handleSize / 2, handleSize, handleSize)
+  ctx.fillRect(cropBox.value.x + cropBox.value.size - HANDLE_SIZE / 2, cropBox.value.y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE)
   // Bottom-left corner
-  ctx.fillRect(cropBox.value.x - handleSize / 2, cropBox.value.y + cropBox.value.size - handleSize / 2, handleSize, handleSize)
+  ctx.fillRect(cropBox.value.x - HANDLE_SIZE / 2, cropBox.value.y + cropBox.value.size - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE)
   // Bottom-right corner (resize handle) - make it stand out
   ctx.fillStyle = '#e74c3c'
-  ctx.fillRect(cropBox.value.x + cropBox.value.size - handleSize / 2, cropBox.value.y + cropBox.value.size - handleSize / 2, handleSize, handleSize)
+  ctx.fillRect(cropBox.value.x + cropBox.value.size - HANDLE_SIZE / 2, cropBox.value.y + cropBox.value.size - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE)
 }
 
 const startDrag = (e: MouseEvent) => {
@@ -158,16 +160,13 @@ const startDrag = (e: MouseEvent) => {
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
   
-  const handleSize = 10
-  const cornerThreshold = 15
-  
   // Check if click is on bottom-right corner (resize handle)
   const bottomRightX = cropBox.value.x + cropBox.value.size
   const bottomRightY = cropBox.value.y + cropBox.value.size
   
   if (
-    Math.abs(x - bottomRightX) < cornerThreshold &&
-    Math.abs(y - bottomRightY) < cornerThreshold
+    Math.abs(x - bottomRightX) < RESIZE_CORNER_THRESHOLD &&
+    Math.abs(y - bottomRightY) < RESIZE_CORNER_THRESHOLD
   ) {
     isResizing.value = true
     resizeStartSize.value = cropBox.value.size
@@ -210,9 +209,8 @@ const drag = (e: MouseEvent) => {
       canvas.value.width - cropBox.value.x,
       canvas.value.height - cropBox.value.y
     )
-    const minSize = 50  // Minimum crop box size
     
-    cropBox.value.size = Math.max(minSize, Math.min(newSize, maxSize))
+    cropBox.value.size = Math.max(MIN_CROP_SIZE, Math.min(newSize, maxSize))
     drawCanvas()
   } else if (isDragging.value) {
     const newX = x - dragOffset.value.x
