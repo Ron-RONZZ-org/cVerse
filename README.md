@@ -19,7 +19,7 @@ A serverless, frontend-only application to generate professional CVs in PDF form
 - **Framework**: Nuxt.js 3
 - **Internationalization**: vue-i18n
 - **PDF Generation**: jsPDF
-- **Markdown Parsing**: Marked
+- **Markdown Parsing**: Custom lightweight parser
 
 ## Getting Started
 

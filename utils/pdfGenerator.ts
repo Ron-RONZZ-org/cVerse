@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf'
-import { marked } from 'marked'
 import type { CVData } from '~/types/cv'
 
 interface PDFOptions {
@@ -231,6 +230,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Save the PDF
-  const fileName = `CV_${data.personal.name.replace(/\s+/g, '_') || 'document'}_${Date.now()}.pdf`
+  const namePart = data.personal.name ? data.personal.name.replace(/\s+/g, '_') : 'document'
+  const fileName = `CV_${namePart}_${Date.now()}.pdf`
   doc.save(fileName)
 }
