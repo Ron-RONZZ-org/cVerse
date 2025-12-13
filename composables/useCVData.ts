@@ -27,7 +27,12 @@ export const useCVData = () => {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         try {
-          cvData.value = JSON.parse(stored)
+          const loadedData = JSON.parse(stored)
+          // Ensure interests field exists for backward compatibility
+          if (!loadedData.interests) {
+            loadedData.interests = ''
+          }
+          cvData.value = loadedData
         } catch (e) {
           console.error('Failed to parse stored CV data:', e)
         }
