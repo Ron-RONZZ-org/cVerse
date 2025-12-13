@@ -59,6 +59,9 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Helper to parse markdown to plain text with basic formatting
+  // Note: This removes formatting markers and converts to plain text
+  // jsPDF's basic font API doesn't support mixed bold/italic in single text blocks
+  // For more advanced formatting, would need to use jsPDF's html() method or custom rendering
   const parseMarkdown = (markdown: string): string => {
     if (!markdown) return ''
     // Simple markdown parsing - convert to plain text with preserved structure
@@ -99,7 +102,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       doc.setDrawColor(200, 200, 200)
       doc.rect(photoColumnX, photoY, photoSize, photoSize)
     } catch (e) {
-      console.error('Failed to add photo to PDF:', e)
+      console.error('Failed to add photo to PDF. The image may be corrupted or in an unsupported format:', e)
     }
   }
   

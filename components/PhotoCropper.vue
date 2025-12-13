@@ -40,6 +40,10 @@ const emit = defineEmits<{
   (e: 'crop', data: string): void
 }>()
 
+// Constants
+const CROP_OUTPUT_SIZE = 200  // Output size in pixels
+const JPEG_QUALITY = 0.9  // JPEG compression quality (0-1)
+
 const canvas = ref<HTMLCanvasElement | null>(null)
 const image = ref<HTMLImageElement | null>(null)
 const cropBox = ref({ x: 50, y: 50, size: 200 })
@@ -184,9 +188,8 @@ const handleCrop = () => {
   
   // Create a new canvas for the cropped image
   const cropCanvas = document.createElement('canvas')
-  const size = 200 // Fixed square size for output
-  cropCanvas.width = size
-  cropCanvas.height = size
+  cropCanvas.width = CROP_OUTPUT_SIZE
+  cropCanvas.height = CROP_OUTPUT_SIZE
   
   const ctx = cropCanvas.getContext('2d')
   if (!ctx) return
@@ -201,10 +204,10 @@ const handleCrop = () => {
   const sHeight = cropBox.value.size * scaleY
   
   // Draw cropped and resized image
-  ctx.drawImage(image.value, sx, sy, sWidth, sHeight, 0, 0, size, size)
+  ctx.drawImage(image.value, sx, sy, sWidth, sHeight, 0, 0, CROP_OUTPUT_SIZE, CROP_OUTPUT_SIZE)
   
   // Convert to base64
-  const croppedImage = cropCanvas.toDataURL('image/jpeg', 0.9)
+  const croppedImage = cropCanvas.toDataURL('image/jpeg', JPEG_QUALITY)
   emit('crop', croppedImage)
 }
 
