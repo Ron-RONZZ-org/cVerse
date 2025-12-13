@@ -1,0 +1,69 @@
+{
+  "app": {
+    "title": "CV Generator",
+    "language": "Language",
+    "save": "Save as JSON",
+    "load": "Load from JSON",
+    "clear": "Clear All",
+    "export": "Export to PDF"
+  },
+  "personal": {
+    "title": "Personal Information",
+    "name": "Full Name",
+    "namePlaceholder": "Enter your full name",
+    "email": "Email",
+    "emailPlaceholder": "your email here",
+    "location": "Location",
+    "locationPlaceholder": "City, Country",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+1 234 567 8900",
+    "website": "Website",
+    "websitePlaceholder": "https://yourwebsite.com",
+    "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "https://linkedin.com/in/yourprofile",
+    "age": "Age",
+    "agePlaceholder": "30",
+    "nationality": "Nationality",
+    "nationalityPlaceholder": "Your nationality"
+  },
+  "experience": {
+    "title": "Professional Experience",
+    "add": "Add Experience",
+    "jobTitle": "Job Title",
+    "jobTitlePlaceholder": "e.g., Senior Software Engineer",
+    "timePeriod": "Time Period",
+    "startDate": "Start Date (YYYY-MM)",
+    "endDate": "End Date (YYYY-MM)",
+    "location": "Location",
+    "locationPlaceholder": "City, Country",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe your responsibilities and achievements (Markdown supported)",
+    "remove": "Remove",
+    "moveUp": "Move Up",
+    "moveDown": "Move Down"
+  },
+  "education": {
+    "title": "Education",
+    "add": "Add Education",
+    "degree": "Degree / Program",
+    "degreePlaceholder": "e.g., Bachelor of Science in Computer Science",
+    "timePeriod": "Time Period",
+    "startDate": "Start Date (YYYY-MM)",
+    "endDate": "End Date (YYYY-MM)",
+    "location": "Institution / Location",
+    "locationPlaceholder": "University Name, City",
+    "description": "Details",
+    "descriptionPlaceholder": "Additional information (Markdown supported)",
+    "remove": "Remove",
+    "moveUp": "Move Up",
+    "moveDown": "Move Down"
+  },
+  "qualities": {
+    "title": "Qualities",
+    "placeholder": "List your key qualities and soft skills (Markdown supported)"
+  },
+  "skills": {
+    "title": "Skills",
+    "placeholder": "List your technical and professional skills (Markdown supported)"
+  }
+}
