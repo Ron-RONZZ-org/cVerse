@@ -5,7 +5,9 @@
     "save": "Enregistrer en JSON",
     "load": "Charger depuis JSON",
     "clear": "Tout effacer",
-    "export": "Exporter en PDF"
+    "export": "Exporter en PDF",
+    "cancel": "Annuler",
+    "confirm": "Confirmer"
   },
   "personal": {
     "title": "Informations Personnelles",
@@ -13,6 +15,13 @@
     "namePlaceholder": "Entrez votre nom complet",
     "email": "Email",
     "emailPlaceholder": "votre email ici",
+    "headline": "Titre Professionnel",
+    "headlinePlaceholder": "ex : Ingénieur Logiciel Senior | Développeur Full-Stack",
+    "photo": "Photo de Portrait",
+    "uploadPhoto": "Télécharger une Photo",
+    "removePhoto": "Supprimer la Photo",
+    "cropPhoto": "Recadrer la Photo",
+    "cropInstructions": "Faites glisser le carré pour le déplacer. Faites glisser le coin rouge pour le redimensionner.",
     "location": "Localisation",
     "locationPlaceholder": "Ville, Pays",
     "phone": "Numéro de Téléphone",
@@ -60,18 +69,22 @@
   },
   "qualities": {
     "title": "Qualités",
-    "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)"
+    "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)\nex :\n- Créativité\n- Autonomie\n- Gestion des priorités\n- Sens des responsabilités"
   },
   "skills": {
     "title": "Compétences",
-    "placeholder": "Listez vos compétences techniques et professionnelles (Markdown supporté)"
+    "placeholder": "Listez vos compétences techniques et professionnelles (Markdown supporté)\nex :\n- JavaScript, TypeScript\n- Vue.js, React\n- Node.js, Python\n- Bases SQL, NoSQL"
   },
   "interests": {
     "title": "Centres d'Intérêt",
-    "placeholder": "Listez vos hobbies et centres d'intérêt (Markdown supporté)"
+    "placeholder": "Listez vos hobbies et centres d'intérêt (Markdown supporté)\nex :\n- Photographie\n- Randonnée\n- Contributions open source\n- Lecture"
   },
   "sort": {
     "newest": "Trier : Plus récent d'abord",
     "oldest": "Trier : Plus ancien d'abord"
+  },
+  "pdfSettings": {
+    "title": "Paramètres PDF",
+    "dividerColor": "Couleur des Séparateurs de Section"
   }
 }

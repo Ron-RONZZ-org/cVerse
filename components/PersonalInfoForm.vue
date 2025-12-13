@@ -1,6 +1,32 @@
 <template>
   <div class="section">
     <h2>{{ t('personal.title') }}</h2>
+    
+    <!-- Photo Upload -->
+    <div class="form-group">
+      <label>{{ t('personal.photo') }}</label>
+      <div class="photo-upload-container">
+        <div v-if="cvData.personal.photo" class="photo-preview">
+          <img :src="cvData.personal.photo" alt="Profile photo" />
+          <button @click="removePhoto" class="btn btn-danger btn-small">
+            {{ t('personal.removePhoto') }}
+          </button>
+        </div>
+        <div v-else class="photo-upload-btn-wrapper">
+          <input 
+            ref="fileInput" 
+            type="file" 
+            accept="image/*" 
+            style="display: none" 
+            @change="handleFileSelect"
+          />
+          <button @click="triggerFileInput" class="btn btn-primary">
+            {{ t('personal.uploadPhoto') }}
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <div class="form-group">
       <label class="required">{{ t('personal.name') }}</label>
       <input 
@@ -76,14 +102,64 @@
         />
       </div>
     </div>
+    
+    <PhotoCropper 
+      :show="showCropper" 
+      :image-url="tempImageUrl" 
+      @crop="handleCrop"
+      @close="closeCropper"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import PhotoCropper from './PhotoCropper.vue'
 
 const { t } = useI18n()
 const { cvData } = useCVData()
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const showCropper = ref(false)
+const tempImageUrl = ref('')
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      tempImageUrl.value = e.target?.result as string
+      showCropper.value = true
+    }
+    reader.readAsDataURL(file)
+    
+    // Reset input
+    if (target) target.value = ''
+  }
+}
+
+const handleCrop = (croppedImage: string) => {
+  cvData.value.personal.photo = croppedImage
+  showCropper.value = false
+  tempImageUrl.value = ''
+}
+
+const closeCropper = () => {
+  showCropper.value = false
+  tempImageUrl.value = ''
+}
+
+const removePhoto = () => {
+  if (confirm(t('personal.removePhoto') + '?')) {
+    cvData.value.personal.photo = undefined
+  }
+}
 </script>
 
 <style scoped>
@@ -137,5 +213,60 @@ input:focus {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+.photo-upload-container {
+  margin-top: 10px;
+}
+
+.photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.photo-preview img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btn-small {
+  padding: 8px 15px;
+  font-size: 13px;
 }
 </style>

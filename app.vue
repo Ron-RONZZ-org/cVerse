@@ -37,6 +37,35 @@
 
       <PersonalInfoForm />
 
+      <!-- Headline -->
+      <div class="section">
+        <h2>{{ t('personal.headline') }}</h2>
+        <div class="form-group">
+          <input 
+            v-model="cvData.personal.headline" 
+            type="text" 
+            :placeholder="t('personal.headlinePlaceholder')"
+            class="headline-input"
+          />
+        </div>
+      </div>
+
+      <!-- PDF Settings -->
+      <div class="section">
+        <h2>{{ t('pdfSettings.title') }}</h2>
+        <div class="form-group">
+          <label>{{ t('pdfSettings.dividerColor') }}</label>
+          <div class="color-picker-wrapper">
+            <input 
+              v-model="cvData.dividerColor" 
+              type="color" 
+              class="color-picker"
+            />
+            <span class="color-value">{{ cvData.dividerColor }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Professional Experience -->
       <div class="section">
         <div class="section-header">
@@ -323,6 +352,46 @@ textarea.full-width:focus {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+.headline-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.headline-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.color-picker {
+  width: 60px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker:hover {
+  border-color: #3498db;
+}
+
+.color-value {
+  font-family: monospace;
+  font-size: 14px;
+  color: #7f8c8d;
+  font-weight: 600;
 }
 
 .empty-message {

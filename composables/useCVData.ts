@@ -7,6 +7,7 @@ export const useCVData = () => {
     personal: {
       name: '',
       email: '',
+      headline: '',
       location: '',
       phone: '',
       website: '',
@@ -18,7 +19,8 @@ export const useCVData = () => {
     education: [],
     qualities: '',
     skills: '',
-    interests: ''
+    interests: '',
+    dividerColor: '#000000'  // Default black color for dividers
   }))
 
   // Load data from localStorage on initialization
@@ -31,6 +33,10 @@ export const useCVData = () => {
           // Ensure interests field exists for backward compatibility
           if (!loadedData.interests) {
             loadedData.interests = ''
+          }
+          // Ensure dividerColor field exists for backward compatibility
+          if (!loadedData.dividerColor) {
+            loadedData.dividerColor = '#000000'
           }
           cvData.value = loadedData
         } catch (e) {
@@ -130,6 +136,7 @@ export const useCVData = () => {
       personal: {
         name: '',
         email: '',
+        headline: '',
         location: '',
         phone: '',
         website: '',
@@ -141,7 +148,8 @@ export const useCVData = () => {
       education: [],
       qualities: '',
       skills: '',
-      interests: ''
+      interests: '',
+      dividerColor: '#000000'
     }
     if (process.client) {
       localStorage.removeItem(STORAGE_KEY)

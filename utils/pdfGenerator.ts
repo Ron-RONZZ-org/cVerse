@@ -22,6 +22,16 @@ const translations = {
   }
 }
 
+// Helper function to convert hex color to RGB
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 0, g: 0, b: 0 }
+}
+
 export const generatePDF = (data: CVData, options: PDFOptions) => {
   const doc = new jsPDF()
   const t = translations[options.locale]
@@ -31,10 +41,20 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const PAGE_BOTTOM_MARGIN = 280
   const leftMargin = 20
   const rightMargin = 190
+  const photoColumnX = 145  // X position for photo column
   const lineHeight = 7
   const sectionSpacing = 10
   
   let y = PAGE_TOP_MARGIN // Current Y position
+  const hasPhoto = !!data.personal.photo
+  
+  // If there's a photo, we'll render it in the top right
+  // and adjust the left column width accordingly
+  const contentWidth = hasPhoto ? 115 : 170  // Width for main content when photo is present
+  
+  // Get divider color from data, default to black
+  const dividerColor = data.dividerColor || '#000000'
+  const dividerRGB = hexToRgb(dividerColor)
 
   // Helper function to add text with word wrap
   const addText = (text: string, x: number, yPos: number, maxWidth: number, size: number = 10, style: 'normal' | 'bold' = 'normal') => {
@@ -53,15 +73,19 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   }
 
   // Helper to parse markdown to plain text with basic formatting
+  // Note: This removes formatting markers and converts to plain text
+  // jsPDF's basic font API doesn't support mixed bold/italic in single text blocks
+  // For more advanced formatting, would need to use jsPDF's html() method or custom rendering
   const parseMarkdown = (markdown: string): string => {
     if (!markdown) return ''
     // Simple markdown parsing - convert to plain text with preserved structure
     let text = markdown
     // Remove bold/italic markers but keep the text
-    text = text.replace(/\*\*([^*]+)\*\*/g, '$1')
-    text = text.replace(/\*([^*]+)\*/g, '$1')
-    text = text.replace(/__([^_]+)__/g, '$1')
-    text = text.replace(/_([^_]+)_/g, '$1')
+    // Use non-greedy matching with .+? to properly handle multiple instances
+    text = text.replace(/\*\*(.+?)\*\*/g, '$1')
+    text = text.replace(/\*(.+?)\*/g, '$1')
+    text = text.replace(/__(.+?)__/g, '$1')
+    text = text.replace(/_(.+?)_/g, '$1')
     // Convert bullet points
     text = text.replace(/^[*-]\s+/gm, '• ')
     return text
@@ -73,9 +97,35 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   doc.text(data.personal.name || '', leftMargin, y)
   y += 8
   
-  // Draw a line under the name
+  // Headline (if provided)
+  if (data.personal.headline) {
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'italic')
+    doc.text(data.personal.headline, leftMargin, y)
+    y += 8
+  }
+  
+  // Render photo in top right corner if available
+  if (hasPhoto && data.personal.photo) {
+    const photoSize = 40  // 40mm square
+    const photoY = PAGE_TOP_MARGIN
+    try {
+      doc.addImage(data.personal.photo, 'JPEG', photoColumnX, photoY, photoSize, photoSize)
+      // Draw border around photo
+      doc.setLineWidth(0.3)
+      doc.setDrawColor(200, 200, 200)
+      doc.rect(photoColumnX, photoY, photoSize, photoSize)
+    } catch (e) {
+      console.error('Failed to add photo to PDF. The image may be corrupted or in an unsupported format:', e)
+    }
+  }
+  
+  // Draw a line under the name/headline
+  // Adjust line width to not overlap with photo
+  const lineEndX = hasPhoto ? photoColumnX - 5 : rightMargin
   doc.setLineWidth(0.5)
-  doc.line(leftMargin, y, rightMargin, y)
+  doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
+  doc.line(leftMargin, y, lineEndX, y)
   y += 8
 
   doc.setFontSize(10)
@@ -88,8 +138,17 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.personal.location) contactInfo.push(data.personal.location)
   
   if (contactInfo.length > 0) {
-    doc.text(contactInfo.join(' | '), leftMargin, y)
-    y += lineHeight
+    // Use word wrap for contact info when photo is present
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(contactInfo.join(' | '), contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(contactInfo.join(' | '), leftMargin, y)
+      y += lineHeight
+    }
   }
   
   // Additional info on next line
@@ -98,19 +157,43 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.personal.nationality) additionalInfo.push(`${options.locale === 'fr' ? 'Nationalité' : 'Nationality'}: ${data.personal.nationality}`)
   
   if (additionalInfo.length > 0) {
-    doc.text(additionalInfo.join(' | '), leftMargin, y)
-    y += lineHeight
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(additionalInfo.join(' | '), contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(additionalInfo.join(' | '), leftMargin, y)
+      y += lineHeight
+    }
   }
   
   // Web links
   if (data.personal.website) {
-    doc.text(`Web: ${data.personal.website}`, leftMargin, y)
-    y += lineHeight
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(`Web: ${data.personal.website}`, contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(`Web: ${data.personal.website}`, leftMargin, y)
+      y += lineHeight
+    }
   }
   
   if (data.personal.linkedin) {
-    doc.text(`LinkedIn: ${data.personal.linkedin}`, leftMargin, y)
-    y += lineHeight
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(`LinkedIn: ${data.personal.linkedin}`, contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(`LinkedIn: ${data.personal.linkedin}`, leftMargin, y)
+      y += lineHeight
+    }
   }
 
   y += sectionSpacing
@@ -123,6 +206,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -172,6 +256,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -221,6 +306,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -244,6 +330,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     
@@ -267,6 +354,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 2
     // Draw line under section title
     doc.setLineWidth(0.3)
+    doc.setDrawColor(dividerRGB.r, dividerRGB.g, dividerRGB.b)
     doc.line(leftMargin, y, rightMargin, y)
     y += 6
     

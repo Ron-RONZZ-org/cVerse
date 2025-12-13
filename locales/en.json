@@ -5,7 +5,9 @@
     "save": "Save as JSON",
     "load": "Load from JSON",
     "clear": "Clear All",
-    "export": "Export to PDF"
+    "export": "Export to PDF",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "personal": {
     "title": "Personal Information",
@@ -13,6 +15,13 @@
     "namePlaceholder": "Enter your full name",
     "email": "Email",
     "emailPlaceholder": "your email here",
+    "headline": "Professional Headline",
+    "headlinePlaceholder": "e.g., Senior Software Engineer | Full-Stack Developer",
+    "photo": "Portrait Photo",
+    "uploadPhoto": "Upload Photo",
+    "removePhoto": "Remove Photo",
+    "cropPhoto": "Crop Photo",
+    "cropInstructions": "Drag the square to move it. Drag the red corner to resize it.",
     "location": "Location",
     "locationPlaceholder": "City, Country",
     "phone": "Phone Number",
@@ -60,18 +69,22 @@
   },
   "qualities": {
     "title": "Qualities",
-    "placeholder": "List your key qualities and soft skills (Markdown supported)"
+    "placeholder": "List your key qualities and soft skills (Markdown supported)\ne.g.:\n- Creativity\n- Autonomy\n- Priority management\n- Sense of responsibility"
   },
   "skills": {
     "title": "Skills",
-    "placeholder": "List your technical and professional skills (Markdown supported)"
+    "placeholder": "List your technical and professional skills (Markdown supported)\ne.g.:\n- JavaScript, TypeScript\n- Vue.js, React\n- Node.js, Python\n- SQL, NoSQL databases"
   },
   "interests": {
     "title": "Interests",
-    "placeholder": "List your hobbies and interests (Markdown supported)"
+    "placeholder": "List your hobbies and interests (Markdown supported)\ne.g.:\n- Photography\n- Hiking\n- Open source contributions\n- Reading"
   },
   "sort": {
     "newest": "Sort: Newest First",
     "oldest": "Sort: Oldest First"
+  },
+  "pdfSettings": {
+    "title": "PDF Settings",
+    "dividerColor": "Section Divider Color"
   }
 }
