@@ -2,6 +2,7 @@ export interface PersonalInfo {
   name: string
   email: string
   headline?: string
+  photo?: string  // base64 encoded image
   location?: string
   phone?: string
   website?: string

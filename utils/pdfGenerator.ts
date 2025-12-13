@@ -31,10 +31,16 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const PAGE_BOTTOM_MARGIN = 280
   const leftMargin = 20
   const rightMargin = 190
+  const photoColumnX = 145  // X position for photo column
   const lineHeight = 7
   const sectionSpacing = 10
   
   let y = PAGE_TOP_MARGIN // Current Y position
+  const hasPhoto = !!data.personal.photo
+  
+  // If there's a photo, we'll render it in the top right
+  // and adjust the left column width accordingly
+  const contentWidth = hasPhoto ? 115 : 170  // Width for main content when photo is present
 
   // Helper function to add text with word wrap
   const addText = (text: string, x: number, yPos: number, maxWidth: number, size: number = 10, style: 'normal' | 'bold' = 'normal') => {
@@ -82,6 +88,21 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     y += 8
   }
   
+  // Render photo in top right corner if available
+  if (hasPhoto && data.personal.photo) {
+    const photoSize = 40  // 40mm square
+    const photoY = PAGE_TOP_MARGIN
+    try {
+      doc.addImage(data.personal.photo, 'JPEG', photoColumnX, photoY, photoSize, photoSize)
+      // Draw border around photo
+      doc.setLineWidth(0.3)
+      doc.setDrawColor(200, 200, 200)
+      doc.rect(photoColumnX, photoY, photoSize, photoSize)
+    } catch (e) {
+      console.error('Failed to add photo to PDF:', e)
+    }
+  }
+  
   // Draw a line under the name/headline
   doc.setLineWidth(0.5)
   doc.line(leftMargin, y, rightMargin, y)
@@ -97,8 +118,17 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.personal.location) contactInfo.push(data.personal.location)
   
   if (contactInfo.length > 0) {
-    doc.text(contactInfo.join(' | '), leftMargin, y)
-    y += lineHeight
+    // Use word wrap for contact info when photo is present
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(contactInfo.join(' | '), contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(contactInfo.join(' | '), leftMargin, y)
+      y += lineHeight
+    }
   }
   
   // Additional info on next line
@@ -107,19 +137,43 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.personal.nationality) additionalInfo.push(`${options.locale === 'fr' ? 'Nationalité' : 'Nationality'}: ${data.personal.nationality}`)
   
   if (additionalInfo.length > 0) {
-    doc.text(additionalInfo.join(' | '), leftMargin, y)
-    y += lineHeight
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(additionalInfo.join(' | '), contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(additionalInfo.join(' | '), leftMargin, y)
+      y += lineHeight
+    }
   }
   
   // Web links
   if (data.personal.website) {
-    doc.text(`Web: ${data.personal.website}`, leftMargin, y)
-    y += lineHeight
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(`Web: ${data.personal.website}`, contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(`Web: ${data.personal.website}`, leftMargin, y)
+      y += lineHeight
+    }
   }
   
   if (data.personal.linkedin) {
-    doc.text(`LinkedIn: ${data.personal.linkedin}`, leftMargin, y)
-    y += lineHeight
+    if (hasPhoto) {
+      const lines = doc.splitTextToSize(`LinkedIn: ${data.personal.linkedin}`, contentWidth)
+      lines.forEach((line: string) => {
+        doc.text(line, leftMargin, y)
+        y += lineHeight
+      })
+    } else {
+      doc.text(`LinkedIn: ${data.personal.linkedin}`, leftMargin, y)
+      y += lineHeight
+    }
   }
 
   y += sectionSpacing

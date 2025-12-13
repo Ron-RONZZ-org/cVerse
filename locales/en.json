@@ -5,7 +5,9 @@
     "save": "Save as JSON",
     "load": "Load from JSON",
     "clear": "Clear All",
-    "export": "Export to PDF"
+    "export": "Export to PDF",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "personal": {
     "title": "Personal Information",
@@ -15,6 +17,11 @@
     "emailPlaceholder": "your email here",
     "headline": "Professional Headline",
     "headlinePlaceholder": "e.g., Senior Software Engineer | Full-Stack Developer",
+    "photo": "Portrait Photo",
+    "uploadPhoto": "Upload Photo",
+    "removePhoto": "Remove Photo",
+    "cropPhoto": "Crop Photo",
+    "cropInstructions": "Drag the square to select the area to crop",
     "location": "Location",
     "locationPlaceholder": "City, Country",
     "phone": "Phone Number",

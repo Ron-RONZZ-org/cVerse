@@ -5,7 +5,9 @@
     "save": "Enregistrer en JSON",
     "load": "Charger depuis JSON",
     "clear": "Tout effacer",
-    "export": "Exporter en PDF"
+    "export": "Exporter en PDF",
+    "cancel": "Annuler",
+    "confirm": "Confirmer"
   },
   "personal": {
     "title": "Informations Personnelles",
@@ -15,6 +17,11 @@
     "emailPlaceholder": "votre email ici",
     "headline": "Titre Professionnel",
     "headlinePlaceholder": "ex : Ingénieur Logiciel Senior | Développeur Full-Stack",
+    "photo": "Photo de Portrait",
+    "uploadPhoto": "Télécharger une Photo",
+    "removePhoto": "Supprimer la Photo",
+    "cropPhoto": "Recadrer la Photo",
+    "cropInstructions": "Faites glisser le carré pour sélectionner la zone à recadrer",
     "location": "Localisation",
     "locationPlaceholder": "Ville, Pays",
     "phone": "Numéro de Téléphone",
