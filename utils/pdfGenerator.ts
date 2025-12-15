@@ -45,6 +45,10 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const lineHeight = 7
   const sectionSpacing = 10
   
+  // Markdown parsing constants
+  const SPACES_PER_INDENT = 2  // Number of spaces that constitute one indent level
+  const INDENT_SPACING_MM = 3  // Millimeters to indent per level in PDF
+  
   let y = PAGE_TOP_MARGIN // Current Y position
   const hasPhoto = !!data.personal.photo
   
@@ -55,8 +59,114 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   // Get divider color from data, default to black
   const dividerColor = data.dividerColor || '#000000'
   const dividerRGB = hexToRgb(dividerColor)
+  
+  // Get link color from data, default to blue
+  const linkColor = data.linkColor || '#00c8ff'
+  const linkRGB = hexToRgb(linkColor)
+  
+  // Black color for regular text
+  const blackRGB = { r: 0, g: 0, b: 0 }
 
-  // Helper function to add text with word wrap
+  // Interface for parsed markdown segments
+  interface MarkdownSegment {
+    type: 'text' | 'link'
+    content: string
+    url?: string
+    indent?: number
+  }
+
+  // Helper to parse markdown into structured segments
+  const parseMarkdownLine = (line: string): MarkdownSegment[] => {
+    const segments: MarkdownSegment[] = []
+    
+    // Extract links [text](url) with bounds checking to prevent infinite loops
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+    let lastIndex = 0
+    let match
+    let iterationCount = 0
+    const MAX_ITERATIONS = 100 // Safety limit to prevent infinite loops
+    
+    while ((match = linkRegex.exec(line)) !== null && iterationCount++ < MAX_ITERATIONS) {
+      // Add text before the link
+      if (match.index > lastIndex) {
+        const textBefore = line.substring(lastIndex, match.index)
+        if (textBefore) {
+          segments.push({ type: 'text', content: textBefore })
+        }
+      }
+      
+      // Add the link
+      segments.push({
+        type: 'link',
+        content: match[1], // link text
+        url: match[2] // link URL
+      })
+      
+      lastIndex = match.index + match[0].length
+    }
+    
+    // Add remaining text after last link
+    if (lastIndex < line.length) {
+      const textAfter = line.substring(lastIndex)
+      if (textAfter) {
+        segments.push({ type: 'text', content: textAfter })
+      }
+    }
+    
+    // If no segments were created (no links), return the whole line as text
+    if (segments.length === 0) {
+      segments.push({ type: 'text', content: line })
+    }
+    
+    return segments
+  }
+
+  // Helper to parse markdown text into lines with metadata
+  const parseMarkdown = (markdown: string): { text: string; indent: number; segments: MarkdownSegment[] }[] => {
+    if (!markdown) return []
+    
+    const lines = markdown.split('\n')
+    const parsedLines: { text: string; indent: number; segments: MarkdownSegment[] }[] = []
+    
+    lines.forEach((line) => {
+      if (!line.trim()) {
+        parsedLines.push({ text: '', indent: 0, segments: [] })
+        return
+      }
+      
+      // Detect indentation level (count leading spaces)
+      const indentMatch = line.match(/^(\s*)/)
+      const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / SPACES_PER_INDENT) : 0
+      
+      // Remove leading/trailing whitespace for processing
+      let processedLine = line.trim()
+      
+      // Handle bullet points and convert to bullet character
+      const bulletMatch = processedLine.match(/^[*-]\s+(.*)/)
+      if (bulletMatch) {
+        processedLine = '• ' + bulletMatch[1]
+      }
+      
+      // Remove bold/italic markers but keep the text
+      processedLine = processedLine.replace(/\*\*(.+?)\*\*/g, '$1')
+      processedLine = processedLine.replace(/\*(.+?)\*/g, '$1')
+      processedLine = processedLine.replace(/__(.+?)__/g, '$1')
+      processedLine = processedLine.replace(/_(.+?)_/g, '$1')
+      
+      // Parse the line into segments (text and links)
+      const segments = parseMarkdownLine(processedLine)
+      
+      parsedLines.push({
+        text: processedLine,
+        indent: indentLevel,
+        segments
+      })
+    })
+    
+    return parsedLines
+  }
+
+  // Helper function to add text with word wrap and link support
   const addText = (text: string, x: number, yPos: number, maxWidth: number, size: number = 10, style: 'normal' | 'bold' = 'normal') => {
     doc.setFontSize(size)
     doc.setFont('helvetica', style)
@@ -72,23 +182,91 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     return yPos
   }
 
-  // Helper to parse markdown to plain text with basic formatting
-  // Note: This removes formatting markers and converts to plain text
-  // jsPDF's basic font API doesn't support mixed bold/italic in single text blocks
-  // For more advanced formatting, would need to use jsPDF's html() method or custom rendering
-  const parseMarkdown = (markdown: string): string => {
-    if (!markdown) return ''
-    // Simple markdown parsing - convert to plain text with preserved structure
-    let text = markdown
-    // Remove bold/italic markers but keep the text
-    // Use non-greedy matching with .+? to properly handle multiple instances
-    text = text.replace(/\*\*(.+?)\*\*/g, '$1')
-    text = text.replace(/\*(.+?)\*/g, '$1')
-    text = text.replace(/__(.+?)__/g, '$1')
-    text = text.replace(/_(.+?)_/g, '$1')
-    // Convert bullet points
-    text = text.replace(/^[*-]\s+/gm, '• ')
-    return text
+  // Helper function to render parsed markdown with links
+  const addMarkdownText = (markdown: string, x: number, yPos: number, maxWidth: number, size: number = 10) => {
+    const parsedLines = parseMarkdown(markdown)
+    doc.setFontSize(size)
+    doc.setFont('helvetica', 'normal')
+    
+    parsedLines.forEach((line) => {
+      if (!line.text.trim()) {
+        yPos += lineHeight / 2 // Half line height for empty lines
+        return
+      }
+      
+      if (yPos > PAGE_BOTTOM_MARGIN) {
+        doc.addPage()
+        yPos = PAGE_TOP_MARGIN
+      }
+      
+      // Calculate indentation
+      const indentX = x + (line.indent * INDENT_SPACING_MM)
+      
+      // If the line has no links, render it simply
+      if (line.segments.length === 1 && line.segments[0].type === 'text') {
+        const wrappedLines = doc.splitTextToSize(line.text, maxWidth - (line.indent * INDENT_SPACING_MM))
+        wrappedLines.forEach((wrappedLine: string, index: number) => {
+          if (yPos > PAGE_BOTTOM_MARGIN) {
+            doc.addPage()
+            yPos = PAGE_TOP_MARGIN
+          }
+          doc.text(wrappedLine, index === 0 ? indentX : indentX + 2, yPos)
+          yPos += lineHeight
+        })
+        return
+      }
+      
+      // Render line with mixed text and links
+      let currentX = indentX
+      const startY = yPos
+      
+      line.segments.forEach((segment) => {
+        if (segment.type === 'text') {
+          // Check if text fits on current line
+          const textWidth = doc.getTextWidth(segment.content)
+          if (currentX + textWidth > x + maxWidth) {
+            // Wrap to next line
+            yPos += lineHeight
+            currentX = indentX + 2
+            if (yPos > PAGE_BOTTOM_MARGIN) {
+              doc.addPage()
+              yPos = PAGE_TOP_MARGIN
+              currentX = indentX
+            }
+          }
+          
+          doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black for regular text
+          doc.text(segment.content, currentX, yPos)
+          currentX += doc.getTextWidth(segment.content)
+        } else if (segment.type === 'link' && segment.url) {
+          // Render link in blue
+          const linkText = segment.content
+          const linkWidth = doc.getTextWidth(linkText)
+          
+          // Check if link fits on current line
+          if (currentX + linkWidth > x + maxWidth) {
+            // Wrap to next line
+            yPos += lineHeight
+            currentX = indentX + 2
+            if (yPos > PAGE_BOTTOM_MARGIN) {
+              doc.addPage()
+              yPos = PAGE_TOP_MARGIN
+              currentX = indentX
+            }
+          }
+          
+          doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Use configurable link color
+          doc.textWithLink(linkText, currentX, yPos, { url: segment.url })
+          currentX += linkWidth
+        }
+      })
+      
+      // Reset text color to black
+      doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b)
+      yPos += lineHeight
+    })
+    
+    return yPos
   }
 
   // Personal Information Header - Improved formatting
@@ -169,31 +347,25 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     }
   }
   
-  // Web links
+  // Web links - render as clickable links with configurable color
   if (data.personal.website) {
-    if (hasPhoto) {
-      const lines = doc.splitTextToSize(`Web: ${data.personal.website}`, contentWidth)
-      lines.forEach((line: string) => {
-        doc.text(line, leftMargin, y)
-        y += lineHeight
-      })
-    } else {
-      doc.text(`Web: ${data.personal.website}`, leftMargin, y)
-      y += lineHeight
-    }
+    const labelWidth = doc.getTextWidth('Web: ')
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black for label
+    doc.text('Web: ', leftMargin, y)
+    
+    doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Link color for URL
+    doc.textWithLink(data.personal.website, leftMargin + labelWidth, y, { url: data.personal.website })
+    y += lineHeight
   }
   
   if (data.personal.linkedin) {
-    if (hasPhoto) {
-      const lines = doc.splitTextToSize(`LinkedIn: ${data.personal.linkedin}`, contentWidth)
-      lines.forEach((line: string) => {
-        doc.text(line, leftMargin, y)
-        y += lineHeight
-      })
-    } else {
-      doc.text(`LinkedIn: ${data.personal.linkedin}`, leftMargin, y)
-      y += lineHeight
-    }
+    const labelWidth = doc.getTextWidth('LinkedIn: ')
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black color for LinkedIn
+    doc.text('LinkedIn: ', leftMargin, y)
+    doc.textWithLink(data.personal.linkedin, leftMargin + labelWidth, y, { url: data.personal.linkedin })
+    y += lineHeight
   }
 
   y += sectionSpacing
@@ -233,8 +405,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       
       if (exp.description) {
         doc.setFont('helvetica', 'normal')
-        const parsedDesc = parseMarkdown(exp.description)
-        y = addText(parsedDesc, leftMargin, y, rightMargin - leftMargin)
+        y = addMarkdownText(exp.description, leftMargin, y, rightMargin - leftMargin)
       }
       
       y += 5
@@ -283,8 +454,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       
       if (edu.description) {
         doc.setFont('helvetica', 'normal')
-        const parsedDesc = parseMarkdown(edu.description)
-        y = addText(parsedDesc, leftMargin, y, rightMargin - leftMargin)
+        y = addMarkdownText(edu.description, leftMargin, y, rightMargin - leftMargin)
       }
       
       y += 5
@@ -312,8 +482,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parsedQualities = parseMarkdown(data.qualities)
-    y = addText(parsedQualities, leftMargin, y, rightMargin - leftMargin)
+    y = addMarkdownText(data.qualities, leftMargin, y, rightMargin - leftMargin)
     y += sectionSpacing
   }
 
@@ -336,8 +505,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parsedSkills = parseMarkdown(data.skills)
-    y = addText(parsedSkills, leftMargin, y, rightMargin - leftMargin)
+    y = addMarkdownText(data.skills, leftMargin, y, rightMargin - leftMargin)
     y += sectionSpacing
   }
 
@@ -360,8 +528,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parsedInterests = parseMarkdown(data.interests)
-    y = addText(parsedInterests, leftMargin, y, rightMargin - leftMargin)
+    y = addMarkdownText(data.interests, leftMargin, y, rightMargin - leftMargin)
   }
 
   // Save the PDF

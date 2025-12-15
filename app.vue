@@ -64,6 +64,17 @@
             <span class="color-value">{{ cvData.dividerColor }}</span>
           </div>
         </div>
+        <div class="form-group">
+          <label>{{ t('pdfSettings.linkColor') }}</label>
+          <div class="color-picker-wrapper">
+            <input 
+              v-model="cvData.linkColor" 
+              type="color" 
+              class="color-picker"
+            />
+            <span class="color-value">{{ cvData.linkColor }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Professional Experience -->

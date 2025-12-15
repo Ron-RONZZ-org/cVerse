@@ -20,7 +20,8 @@ export const useCVData = () => {
     qualities: '',
     skills: '',
     interests: '',
-    dividerColor: '#000000'  // Default black color for dividers
+    dividerColor: '#000000',  // Default black color for dividers
+    linkColor: '#0000FF'  // Default blue color for links
   }))
 
   // Load data from localStorage on initialization
@@ -37,6 +38,10 @@ export const useCVData = () => {
           // Ensure dividerColor field exists for backward compatibility
           if (!loadedData.dividerColor) {
             loadedData.dividerColor = '#000000'
+          }
+          // Ensure linkColor field exists for backward compatibility
+          if (!loadedData.linkColor) {
+            loadedData.linkColor = '#0000FF'
           }
           cvData.value = loadedData
         } catch (e) {
@@ -149,7 +154,8 @@ export const useCVData = () => {
       qualities: '',
       skills: '',
       interests: '',
-      dividerColor: '#000000'
+      dividerColor: '#000000',
+      linkColor: '#0000FF'
     }
     if (process.client) {
       localStorage.removeItem(STORAGE_KEY)
