@@ -188,11 +188,11 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       }
       
       // Calculate indentation
-      const indentX = x + (line.indent * 5) // 5mm per indent level
+      const indentX = x + (line.indent * 3) // 3mm per indent level
       
       // If the line has no links, render it simply
       if (line.segments.length === 1 && line.segments[0].type === 'text') {
-        const wrappedLines = doc.splitTextToSize(line.text, maxWidth - (line.indent * 5))
+        const wrappedLines = doc.splitTextToSize(line.text, maxWidth - (line.indent * 3))
         wrappedLines.forEach((wrappedLine: string, index: number) => {
           if (yPos > PAGE_BOTTOM_MARGIN) {
             doc.addPage()
