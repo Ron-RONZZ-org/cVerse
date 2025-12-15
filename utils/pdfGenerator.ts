@@ -61,7 +61,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const dividerRGB = hexToRgb(dividerColor)
   
   // Get link color from data, default to blue
-  const linkColor = data.linkColor || '#0000FF'
+  const linkColor = data.linkColor || '#00c8ff'
   const linkRGB = hexToRgb(linkColor)
   
   // Black color for regular text
@@ -362,10 +362,8 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.personal.linkedin) {
     const labelWidth = doc.getTextWidth('LinkedIn: ')
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black for label
+    doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black color for LinkedIn
     doc.text('LinkedIn: ', leftMargin, y)
-    
-    doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Link color for URL
     doc.textWithLink(data.personal.linkedin, leftMargin + labelWidth, y, { url: data.personal.linkedin })
     y += lineHeight
   }
