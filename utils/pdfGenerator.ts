@@ -56,7 +56,105 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const dividerColor = data.dividerColor || '#000000'
   const dividerRGB = hexToRgb(dividerColor)
 
-  // Helper function to add text with word wrap
+  // Interface for parsed markdown segments
+  interface MarkdownSegment {
+    type: 'text' | 'link'
+    content: string
+    url?: string
+    indent?: number
+  }
+
+  // Helper to parse markdown into structured segments
+  const parseMarkdownLine = (line: string): MarkdownSegment[] => {
+    const segments: MarkdownSegment[] = []
+    let remaining = line
+    
+    // Extract links [text](url)
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+    let lastIndex = 0
+    let match
+    
+    while ((match = linkRegex.exec(line)) !== null) {
+      // Add text before the link
+      if (match.index > lastIndex) {
+        const textBefore = line.substring(lastIndex, match.index)
+        if (textBefore) {
+          segments.push({ type: 'text', content: textBefore })
+        }
+      }
+      
+      // Add the link
+      segments.push({
+        type: 'link',
+        content: match[1], // link text
+        url: match[2] // link URL
+      })
+      
+      lastIndex = match.index + match[0].length
+    }
+    
+    // Add remaining text after last link
+    if (lastIndex < line.length) {
+      const textAfter = line.substring(lastIndex)
+      if (textAfter) {
+        segments.push({ type: 'text', content: textAfter })
+      }
+    }
+    
+    // If no segments were created (no links), return the whole line as text
+    if (segments.length === 0) {
+      segments.push({ type: 'text', content: line })
+    }
+    
+    return segments
+  }
+
+  // Helper to parse markdown text into lines with metadata
+  const parseMarkdown = (markdown: string): { text: string; indent: number; segments: MarkdownSegment[] }[] => {
+    if (!markdown) return []
+    
+    const lines = markdown.split('\n')
+    const parsedLines: { text: string; indent: number; segments: MarkdownSegment[] }[] = []
+    
+    lines.forEach((line) => {
+      if (!line.trim()) {
+        parsedLines.push({ text: '', indent: 0, segments: [] })
+        return
+      }
+      
+      // Detect indentation level (count leading spaces, 2 spaces = 1 indent level)
+      const indentMatch = line.match(/^(\s*)/)
+      const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0
+      
+      // Remove leading/trailing whitespace for processing
+      let processedLine = line.trim()
+      
+      // Handle bullet points and convert to bullet character
+      const bulletMatch = processedLine.match(/^[*-]\s+(.*)/)
+      if (bulletMatch) {
+        processedLine = '• ' + bulletMatch[1]
+      }
+      
+      // Remove bold/italic markers but keep the text
+      processedLine = processedLine.replace(/\*\*(.+?)\*\*/g, '$1')
+      processedLine = processedLine.replace(/\*(.+?)\*/g, '$1')
+      processedLine = processedLine.replace(/__(.+?)__/g, '$1')
+      processedLine = processedLine.replace(/_(.+?)_/g, '$1')
+      
+      // Parse the line into segments (text and links)
+      const segments = parseMarkdownLine(processedLine)
+      
+      parsedLines.push({
+        text: processedLine,
+        indent: indentLevel,
+        segments
+      })
+    })
+    
+    return parsedLines
+  }
+
+  // Helper function to add text with word wrap and link support
   const addText = (text: string, x: number, yPos: number, maxWidth: number, size: number = 10, style: 'normal' | 'bold' = 'normal') => {
     doc.setFontSize(size)
     doc.setFont('helvetica', style)
@@ -72,23 +170,91 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     return yPos
   }
 
-  // Helper to parse markdown to plain text with basic formatting
-  // Note: This removes formatting markers and converts to plain text
-  // jsPDF's basic font API doesn't support mixed bold/italic in single text blocks
-  // For more advanced formatting, would need to use jsPDF's html() method or custom rendering
-  const parseMarkdown = (markdown: string): string => {
-    if (!markdown) return ''
-    // Simple markdown parsing - convert to plain text with preserved structure
-    let text = markdown
-    // Remove bold/italic markers but keep the text
-    // Use non-greedy matching with .+? to properly handle multiple instances
-    text = text.replace(/\*\*(.+?)\*\*/g, '$1')
-    text = text.replace(/\*(.+?)\*/g, '$1')
-    text = text.replace(/__(.+?)__/g, '$1')
-    text = text.replace(/_(.+?)_/g, '$1')
-    // Convert bullet points
-    text = text.replace(/^[*-]\s+/gm, '• ')
-    return text
+  // Helper function to render parsed markdown with links
+  const addMarkdownText = (markdown: string, x: number, yPos: number, maxWidth: number, size: number = 10) => {
+    const parsedLines = parseMarkdown(markdown)
+    doc.setFontSize(size)
+    doc.setFont('helvetica', 'normal')
+    
+    parsedLines.forEach((line) => {
+      if (!line.text.trim()) {
+        yPos += lineHeight / 2 // Half line height for empty lines
+        return
+      }
+      
+      if (yPos > PAGE_BOTTOM_MARGIN) {
+        doc.addPage()
+        yPos = PAGE_TOP_MARGIN
+      }
+      
+      // Calculate indentation
+      const indentX = x + (line.indent * 5) // 5mm per indent level
+      
+      // If the line has no links, render it simply
+      if (line.segments.length === 1 && line.segments[0].type === 'text') {
+        const wrappedLines = doc.splitTextToSize(line.text, maxWidth - (line.indent * 5))
+        wrappedLines.forEach((wrappedLine: string, index: number) => {
+          if (yPos > PAGE_BOTTOM_MARGIN) {
+            doc.addPage()
+            yPos = PAGE_TOP_MARGIN
+          }
+          doc.text(wrappedLine, index === 0 ? indentX : indentX + 2, yPos)
+          yPos += lineHeight
+        })
+        return
+      }
+      
+      // Render line with mixed text and links
+      let currentX = indentX
+      const startY = yPos
+      
+      line.segments.forEach((segment) => {
+        if (segment.type === 'text') {
+          // Check if text fits on current line
+          const textWidth = doc.getTextWidth(segment.content)
+          if (currentX + textWidth > x + maxWidth) {
+            // Wrap to next line
+            yPos += lineHeight
+            currentX = indentX + 2
+            if (yPos > PAGE_BOTTOM_MARGIN) {
+              doc.addPage()
+              yPos = PAGE_TOP_MARGIN
+              currentX = indentX
+            }
+          }
+          
+          doc.setTextColor(0, 0, 0) // Black for regular text
+          doc.text(segment.content, currentX, yPos)
+          currentX += doc.getTextWidth(segment.content)
+        } else if (segment.type === 'link' && segment.url) {
+          // Render link in blue
+          const linkText = segment.content
+          const linkWidth = doc.getTextWidth(linkText)
+          
+          // Check if link fits on current line
+          if (currentX + linkWidth > x + maxWidth) {
+            // Wrap to next line
+            yPos += lineHeight
+            currentX = indentX + 2
+            if (yPos > PAGE_BOTTOM_MARGIN) {
+              doc.addPage()
+              yPos = PAGE_TOP_MARGIN
+              currentX = indentX
+            }
+          }
+          
+          doc.setTextColor(0, 0, 255) // Blue for links
+          doc.textWithLink(linkText, currentX, yPos, { url: segment.url })
+          currentX += linkWidth
+        }
+      })
+      
+      // Reset text color to black
+      doc.setTextColor(0, 0, 0)
+      yPos += lineHeight
+    })
+    
+    return yPos
   }
 
   // Personal Information Header - Improved formatting
@@ -233,8 +399,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       
       if (exp.description) {
         doc.setFont('helvetica', 'normal')
-        const parsedDesc = parseMarkdown(exp.description)
-        y = addText(parsedDesc, leftMargin, y, rightMargin - leftMargin)
+        y = addMarkdownText(exp.description, leftMargin, y, rightMargin - leftMargin)
       }
       
       y += 5
@@ -283,8 +448,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       
       if (edu.description) {
         doc.setFont('helvetica', 'normal')
-        const parsedDesc = parseMarkdown(edu.description)
-        y = addText(parsedDesc, leftMargin, y, rightMargin - leftMargin)
+        y = addMarkdownText(edu.description, leftMargin, y, rightMargin - leftMargin)
       }
       
       y += 5
@@ -312,8 +476,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parsedQualities = parseMarkdown(data.qualities)
-    y = addText(parsedQualities, leftMargin, y, rightMargin - leftMargin)
+    y = addMarkdownText(data.qualities, leftMargin, y, rightMargin - leftMargin)
     y += sectionSpacing
   }
 
@@ -336,8 +499,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parsedSkills = parseMarkdown(data.skills)
-    y = addText(parsedSkills, leftMargin, y, rightMargin - leftMargin)
+    y = addMarkdownText(data.skills, leftMargin, y, rightMargin - leftMargin)
     y += sectionSpacing
   }
 
@@ -360,8 +522,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parsedInterests = parseMarkdown(data.interests)
-    y = addText(parsedInterests, leftMargin, y, rightMargin - leftMargin)
+    y = addMarkdownText(data.interests, leftMargin, y, rightMargin - leftMargin)
   }
 
   // Save the PDF
