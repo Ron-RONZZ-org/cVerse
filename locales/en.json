@@ -85,6 +85,7 @@
   },
   "pdfSettings": {
     "title": "PDF Settings",
-    "dividerColor": "Section Divider Color"
+    "dividerColor": "Section Divider Color",
+    "linkColor": "Link Color"
   }
 }

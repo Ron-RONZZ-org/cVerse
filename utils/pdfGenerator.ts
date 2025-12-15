@@ -59,6 +59,10 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   // Get divider color from data, default to black
   const dividerColor = data.dividerColor || '#000000'
   const dividerRGB = hexToRgb(dividerColor)
+  
+  // Get link color from data, default to blue
+  const linkColor = data.linkColor || '#0000FF'
+  const linkRGB = hexToRgb(linkColor)
 
   // Interface for parsed markdown segments
   interface MarkdownSegment {
@@ -248,7 +252,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
             }
           }
           
-          doc.setTextColor(0, 0, 255) // Blue for links
+          doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Use configurable link color
           doc.textWithLink(linkText, currentX, yPos, { url: segment.url })
           currentX += linkWidth
         }
@@ -340,31 +344,27 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     }
   }
   
-  // Web links
+  // Web links - render as clickable blue links
   if (data.personal.website) {
-    if (hasPhoto) {
-      const lines = doc.splitTextToSize(`Web: ${data.personal.website}`, contentWidth)
-      lines.forEach((line: string) => {
-        doc.text(line, leftMargin, y)
-        y += lineHeight
-      })
-    } else {
-      doc.text(`Web: ${data.personal.website}`, leftMargin, y)
-      y += lineHeight
-    }
+    const labelWidth = doc.getTextWidth('Web: ')
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0, 0, 0) // Black for label
+    doc.text('Web: ', leftMargin, y)
+    
+    doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Link color for URL
+    doc.textWithLink(data.personal.website, leftMargin + labelWidth, y, { url: data.personal.website })
+    y += lineHeight
   }
   
   if (data.personal.linkedin) {
-    if (hasPhoto) {
-      const lines = doc.splitTextToSize(`LinkedIn: ${data.personal.linkedin}`, contentWidth)
-      lines.forEach((line: string) => {
-        doc.text(line, leftMargin, y)
-        y += lineHeight
-      })
-    } else {
-      doc.text(`LinkedIn: ${data.personal.linkedin}`, leftMargin, y)
-      y += lineHeight
-    }
+    const labelWidth = doc.getTextWidth('LinkedIn: ')
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0, 0, 0) // Black for label
+    doc.text('LinkedIn: ', leftMargin, y)
+    
+    doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Link color for URL
+    doc.textWithLink(data.personal.linkedin, leftMargin + labelWidth, y, { url: data.personal.linkedin })
+    y += lineHeight
   }
 
   y += sectionSpacing

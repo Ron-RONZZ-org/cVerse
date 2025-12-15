@@ -85,6 +85,7 @@
   },
   "pdfSettings": {
     "title": "Paramètres PDF",
-    "dividerColor": "Couleur des Séparateurs de Section"
+    "dividerColor": "Couleur des Séparateurs de Section",
+    "linkColor": "Couleur des Liens"
   }
 }
