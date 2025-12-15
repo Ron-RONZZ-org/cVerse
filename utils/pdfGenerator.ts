@@ -63,6 +63,9 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   // Get link color from data, default to blue
   const linkColor = data.linkColor || '#0000FF'
   const linkRGB = hexToRgb(linkColor)
+  
+  // Black color for regular text
+  const blackRGB = { r: 0, g: 0, b: 0 }
 
   // Interface for parsed markdown segments
   interface MarkdownSegment {
@@ -232,7 +235,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
             }
           }
           
-          doc.setTextColor(0, 0, 0) // Black for regular text
+          doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black for regular text
           doc.text(segment.content, currentX, yPos)
           currentX += doc.getTextWidth(segment.content)
         } else if (segment.type === 'link' && segment.url) {
@@ -259,7 +262,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       })
       
       // Reset text color to black
-      doc.setTextColor(0, 0, 0)
+      doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b)
       yPos += lineHeight
     })
     
@@ -344,11 +347,11 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
     }
   }
   
-  // Web links - render as clickable blue links
+  // Web links - render as clickable links with configurable color
   if (data.personal.website) {
     const labelWidth = doc.getTextWidth('Web: ')
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(0, 0, 0) // Black for label
+    doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black for label
     doc.text('Web: ', leftMargin, y)
     
     doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Link color for URL
@@ -359,7 +362,7 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   if (data.personal.linkedin) {
     const labelWidth = doc.getTextWidth('LinkedIn: ')
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(0, 0, 0) // Black for label
+    doc.setTextColor(blackRGB.r, blackRGB.g, blackRGB.b) // Black for label
     doc.text('LinkedIn: ', leftMargin, y)
     
     doc.setTextColor(linkRGB.r, linkRGB.g, linkRGB.b) // Link color for URL
