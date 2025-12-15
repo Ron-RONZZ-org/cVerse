@@ -45,6 +45,10 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   const lineHeight = 7
   const sectionSpacing = 10
   
+  // Markdown parsing constants
+  const SPACES_PER_INDENT = 2  // Number of spaces that constitute one indent level
+  const INDENT_SPACING_MM = 3  // Millimeters to indent per level in PDF
+  
   let y = PAGE_TOP_MARGIN // Current Y position
   const hasPhoto = !!data.personal.photo
   
@@ -67,14 +71,15 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
   // Helper to parse markdown into structured segments
   const parseMarkdownLine = (line: string): MarkdownSegment[] => {
     const segments: MarkdownSegment[] = []
-    let remaining = line
     
-    // Extract links [text](url)
+    // Extract links [text](url) with bounds checking to prevent infinite loops
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
     let lastIndex = 0
     let match
+    let iterationCount = 0
+    const MAX_ITERATIONS = 100 // Safety limit to prevent infinite loops
     
-    while ((match = linkRegex.exec(line)) !== null) {
+    while ((match = linkRegex.exec(line)) !== null && iterationCount++ < MAX_ITERATIONS) {
       // Add text before the link
       if (match.index > lastIndex) {
         const textBefore = line.substring(lastIndex, match.index)
@@ -122,9 +127,9 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
         return
       }
       
-      // Detect indentation level (count leading spaces, 2 spaces = 1 indent level)
+      // Detect indentation level (count leading spaces)
       const indentMatch = line.match(/^(\s*)/)
-      const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0
+      const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / SPACES_PER_INDENT) : 0
       
       // Remove leading/trailing whitespace for processing
       let processedLine = line.trim()
@@ -188,11 +193,11 @@ export const generatePDF = (data: CVData, options: PDFOptions) => {
       }
       
       // Calculate indentation
-      const indentX = x + (line.indent * 3) // 3mm per indent level
+      const indentX = x + (line.indent * INDENT_SPACING_MM)
       
       // If the line has no links, render it simply
       if (line.segments.length === 1 && line.segments[0].type === 'text') {
-        const wrappedLines = doc.splitTextToSize(line.text, maxWidth - (line.indent * 3))
+        const wrappedLines = doc.splitTextToSize(line.text, maxWidth - (line.indent * INDENT_SPACING_MM))
         wrappedLines.forEach((wrappedLine: string, index: number) => {
           if (yPos > PAGE_BOTTOM_MARGIN) {
             doc.addPage()
