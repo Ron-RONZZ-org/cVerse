@@ -21,7 +21,7 @@ export const useCVData = () => {
     skills: '',
     interests: '',
     dividerColor: '#000000',  // Default black color for dividers
-    linkColor: '#0000FF'  // Default blue color for links
+    linkColor: '#00c8ff'  // Default blue color for links
   }))
 
   // Load data from localStorage on initialization
