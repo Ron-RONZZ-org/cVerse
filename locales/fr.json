@@ -103,7 +103,7 @@
     "attributeName": "Nom de la qualité",
     "attributeNamePlaceholder": "ex : Créativité",
     "attributeScore": "Force",
-    "showStrength": "Afficher les scores de force",
+    "showStrength": "Afficher sous forme de diagramme de force",
     "emptyAttributes": "Aucune qualité ajoutée. Cliquez sur 'Ajouter une qualité' pour commencer."
   },
   "skills": {
@@ -126,14 +126,20 @@
     "empty": "Aucune section personnalisée ajoutée."
   },
   "qrCode": {
-    "title": "Code QR",
-    "enable": "Afficher le Code QR",
+    "title": "Codes QR",
+    "enable": "Afficher les Codes QR",
+    "add": "Ajouter un Code QR",
+    "qrCode": "Code QR",
+    "url": "URL",
+    "urlPlaceholder": "https://exemple.com",
     "caption": "Légende",
-    "captionPlaceholder": "Scannez pour en savoir plus sur mon site web",
+    "captionPlaceholder": "Scannez pour en savoir plus",
     "decoration": "Image de décoration centrale",
     "uploadDecoration": "Télécharger une décoration",
     "changeDecoration": "Changer la décoration",
-    "removeDecoration": "Supprimer"
+    "removeDecoration": "Supprimer",
+    "remove": "Supprimer",
+    "empty": "Aucun code QR ajouté. Cliquez sur 'Ajouter un Code QR' pour commencer."
   },
   "footer": {
     "title": "Pied de page de crédit",
@@ -148,5 +154,13 @@
   "sort": {
     "newest": "Trier : Plus récent d'abord",
     "oldest": "Trier : Plus ancien d'abord"
+  },
+  "sectionTitles": {
+    "experience": "Expérience Professionnelle",
+    "education": "Formation",
+    "languages": "Langues",
+    "qualities": "Qualités",
+    "skills": "Compétences",
+    "interests": "Centres d'Intérêt"
   }
 }

@@ -1,4 +1,4 @@
-import type { CVData, PersonalInfo, ExperienceBlock, EducationBlock, LanguageSkill, CustomSection, CustomField, CEFRLevel, QualityAttribute } from '~/types/cv'
+import type { CVData, PersonalInfo, ExperienceBlock, EducationBlock, LanguageSkill, CustomSection, CustomField, CEFRLevel, QualityAttribute, QRCodeItem } from '~/types/cv'
 
 const STORAGE_KEY = 'cv-data'
 
@@ -34,8 +34,25 @@ function migrateOldData(data: Record<string, unknown>): void {
   if (!data.skills) (data as Record<string, unknown>).skills = ''
   if (!data.interests) (data as Record<string, unknown>).interests = ''
   if (!data.accentColor) (data as Record<string, unknown>).accentColor = '#2563eb'
-  if (!data.qrCode) (data as Record<string, unknown>).qrCode = { enabled: false, caption: '', decoration: '' }
+  if (!data.qrCode) (data as Record<string, unknown>).qrCode = { enabled: false, items: [] }
   if (!data.footer) (data as Record<string, unknown>).footer = { enabled: false, text: '' }
+
+  // Migrate old single-QR format to multi-QR items
+  const qr = data.qrCode as Record<string, unknown>
+  if (qr && !('items' in qr)) {
+    const personal = data.personal as Record<string, unknown> | undefined
+    const website = (personal?.website as string) || ''
+    const items: QRCodeItem[] = []
+    if (qr.enabled && website) {
+      items.push({
+        id: crypto.randomUUID(),
+        url: website,
+        caption: (qr.caption as string) || '',
+        decoration: (qr.decoration as string) || ''
+      })
+    }
+    data.qrCode = { enabled: qr.enabled as boolean || false, items }
+  }
 
   // personal sub-object may be partial
   const personal = data.personal as Record<string, unknown> | undefined
@@ -100,8 +117,7 @@ const emptyCV = (): CVData => ({
   qualitiesShowStrength: false,
   qrCode: {
     enabled: false,
-    caption: '',
-    decoration: ''
+    items: []
   },
   footer: {
     enabled: false,
@@ -242,6 +258,20 @@ export const useCVData = () => {
     cvData.value.personal.customFields = cvData.value.personal.customFields.filter(f => f.id !== id)
   }
 
+  // --- QR Code Items ---
+  const addQRCode = (url: string) => {
+    cvData.value.qrCode.items.push({
+      id: crypto.randomUUID(),
+      url,
+      caption: '',
+      decoration: ''
+    })
+  }
+
+  const removeQRCode = (id: string) => {
+    cvData.value.qrCode.items = cvData.value.qrCode.items.filter(q => q.id !== id)
+  }
+
   // --- Sort helpers ---
   const sortExperience = (order: 'newest' | 'oldest') => {
     cvData.value.experience.sort((a, b) => {
@@ -306,6 +336,7 @@ export const useCVData = () => {
     addQualityAttribute, removeQualityAttribute,
     addCustomSection, removeCustomSection,
     addCustomField, removeCustomField,
+    addQRCode, removeQRCode,
     clearData,
     exportToJSON, importFromJSON
   }

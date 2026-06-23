@@ -9,32 +9,31 @@ import QRCode from 'qrcode'
 export async function printCV(data: CVData, locale: string): Promise<void> {
   let html = renderCV(data, locale)
 
-  // Inject QR code if enabled and website is set
-  if (data.qrCode.enabled && data.personal.website) {
-    try {
-      const qrSvg = await QRCode.toString(data.personal.website, {
-        type: 'svg',
-        margin: 2,
-        color: {
-          dark: '#1e293b',
-          light: '#ffffff'
+  // Inject QR codes for each item
+  if (data.qrCode.enabled && data.qrCode.items.length > 0) {
+    for (const item of data.qrCode.items) {
+      if (!item.url) continue
+      try {
+        const qrSvg = await QRCode.toString(item.url, {
+          type: 'svg',
+          margin: 2,
+          color: {
+            dark: '#1e293b',
+            light: '#ffffff'
+          }
+        })
+        const svgMatch = qrSvg.match(/<svg[\s\S]*?<\/svg>/)
+        if (svgMatch) {
+          const realSvg = svgMatch[0].replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet"')
+          const qrId = `qr-svg-${item.id}`
+          html = html.replace(
+            new RegExp(`<svg id="${qrId}"[\\s\\S]*?</svg>`),
+            realSvg
+          )
         }
-      })
-      // Replace the placeholder QR SVG with the real one
-      // The placeholder has id="qr-svg", the real one from qrcode is a full <svg>
-      // We extract just the <svg>...</svg> part
-      const svgMatch = qrSvg.match(/<svg[\s\S]*?<\/svg>/)
-      if (svgMatch) {
-        // Remove viewBox from generated SVG so our wrapper controls sizing
-        const realSvg = svgMatch[0].replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet"')
-        html = html.replace(
-          /<svg id="qr-svg"[\s\S]*?<\/svg>/,
-          realSvg
-        )
+      } catch (e) {
+        console.error(`Failed to generate QR code for ${item.url}:`, e)
       }
-    } catch (e) {
-      console.error('Failed to generate QR code:', e)
-      // Proceed without QR code
     }
   }
 

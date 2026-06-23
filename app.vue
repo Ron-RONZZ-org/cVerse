@@ -304,27 +304,49 @@
         </div>
         <div v-if="cvData.qrCode.enabled">
           <div class="form-group">
-            <label>{{ t('qrCode.caption') }}</label>
-            <input v-model="cvData.qrCode.caption" type="text" :placeholder="t('qrCode.captionPlaceholder')" />
+            <button @click="addQRCode(cvData.personal.website || '')" class="btn btn-primary btn-small">
+              {{ t('qrCode.add') }}
+            </button>
           </div>
-          <div class="form-group">
-            <label>{{ t('qrCode.decoration') }}</label>
-            <div class="photo-upload-btn-wrapper">
-              <input
-                ref="qrDecorationInput"
-                type="file"
-                accept="image/*"
-                style="display: none"
-                @change="handleQRDecorationUpload"
-              />
-              <button @click="triggerQRDecorationUpload" class="btn btn-secondary btn-small">
-                {{ cvData.qrCode.decoration ? t('qrCode.changeDecoration') : t('qrCode.uploadDecoration') }}
-              </button>
-              <button v-if="cvData.qrCode.decoration" @click="cvData.qrCode.decoration = ''" class="btn btn-danger btn-small">
-                {{ t('qrCode.removeDecoration') }}
-              </button>
+          <p v-if="cvData.qrCode.items.length === 0" class="empty-message">
+            {{ t('qrCode.empty') }}
+          </p>
+          <div
+            v-for="(q, idx) in cvData.qrCode.items"
+            :key="q.id"
+            class="block"
+          >
+            <div class="block-header">
+              <h3>{{ t('qrCode.qrCode') }} #{{ idx + 1 }}</h3>
+              <button @click="removeQRCode(q.id)" class="btn-icon btn-danger" :title="t('qrCode.remove')">✕</button>
             </div>
-            <img v-if="cvData.qrCode.decoration" :src="cvData.qrCode.decoration" class="decoration-preview" alt="QR decoration" />
+            <div class="form-group">
+              <label>{{ t('qrCode.url') }}</label>
+              <input v-model="q.url" type="url" :placeholder="t('qrCode.urlPlaceholder')" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('qrCode.caption') }}</label>
+              <input v-model="q.caption" type="text" :placeholder="t('qrCode.captionPlaceholder')" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('qrCode.decoration') }}</label>
+              <div class="photo-upload-btn-wrapper">
+                <input
+                  :id="'qr-dec-input-' + q.id"
+                  type="file"
+                  accept="image/*"
+                  style="display: none"
+                  @change="(e) => handleQRDecorationUpload(e, q)"
+                />
+                <button @click="triggerQRFileInput(q.id)" class="btn btn-secondary btn-small">
+                  {{ q.decoration ? t('qrCode.changeDecoration') : t('qrCode.uploadDecoration') }}
+                </button>
+                <button v-if="q.decoration" @click="q.decoration = ''" class="btn btn-danger btn-small">
+                  {{ t('qrCode.removeDecoration') }}
+                </button>
+              </div>
+              <img v-if="q.decoration" :src="q.decoration" class="decoration-preview" alt="QR decoration" />
+            </div>
           </div>
         </div>
       </div>
@@ -382,13 +404,14 @@ const {
   removeCustomSection,
   addCustomField,
   removeCustomField,
+  addQRCode,
+  removeQRCode,
   clearData,
   exportToJSON,
   importFromJSON
 } = useCVData()
 
 const fileInput = ref<HTMLInputElement | null>(null)
-const qrDecorationInput = ref<HTMLInputElement | null>(null)
 
 const languageOptions = computed(() => useLanguages(locale.value))
 
@@ -433,17 +456,17 @@ const handleExportPDF = () => {
   printCV(cvData.value, locale.value)
 }
 
-const triggerQRDecorationUpload = () => {
-  qrDecorationInput.value?.click()
+const triggerQRFileInput = (itemId: string) => {
+  document.getElementById('qr-dec-input-' + itemId)?.click()
 }
 
-const handleQRDecorationUpload = (event: Event) => {
+const handleQRDecorationUpload = (event: Event, qrItem: { id: string; decoration: string }) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
-      cvData.value.qrCode.decoration = e.target?.result as string
+      qrItem.decoration = e.target?.result as string
     }
     reader.readAsDataURL(file)
     if (target) target.value = ''

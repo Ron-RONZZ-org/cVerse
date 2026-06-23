@@ -19,6 +19,7 @@
           class="preview-iframe"
           :srcdoc="cvHtml"
           title="CV Preview"
+          @load="onIframeLoad"
         ></iframe>
       </div>
     </div>
@@ -26,8 +27,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import QRCode from 'qrcode'
 import { renderCV } from '~/utils/cvTemplate'
 import { printCV } from '~/utils/printCV'
 import { useCVData } from '~/composables/useCVData'
@@ -39,12 +41,60 @@ const collapsed = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
 const previewContainer = ref<HTMLDivElement | null>(null)
 const renderKey = ref(0)
+const qrReplaced = ref(false)
 
 const cvHtml = computed(() => {
   // Force re-computation when renderKey changes
   void renderKey.value
+  qrReplaced.value = false
   return renderCV(cvData.value, locale.value)
 })
+
+// After the iframe loads, replace QR placeholders with real QR SVGs
+async function replaceQRPlaceholders() {
+  const iframe = previewIframe.value
+  if (!iframe || !iframe.contentDocument) return
+
+  const svgPlaceholders = iframe.contentDocument.querySelectorAll('[id^="qr-svg-"]')
+  if (svgPlaceholders.length === 0) return
+
+  for (const placeholder of svgPlaceholders) {
+    const id = placeholder.id
+    const itemId = id.replace('qr-svg-', '')
+    const item = cvData.value.qrCode.items.find(q => q.id === itemId)
+    if (!item || !item.url) continue
+
+    try {
+      const qrSvg = await QRCode.toString(item.url, {
+        type: 'svg',
+        margin: 2,
+        color: { dark: '#1e293b', light: '#ffffff' }
+      })
+      const svgMatch = qrSvg.match(/<svg[\s\S]*?<\/svg>/)
+      if (svgMatch) {
+        const realSvg = svgMatch[0].replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet"')
+        placeholder.outerHTML = realSvg
+      }
+    } catch (e) {
+      console.error(`Failed to generate QR code for preview:`, e)
+    }
+  }
+  qrReplaced.value = true
+}
+
+// Watch for iframe content changes (a new srcdoc will reload the iframe)
+watch(cvHtml, async () => {
+  await nextTick()
+  // Wait for iframe to load its new srcdoc
+  setTimeout(async () => {
+    await replaceQRPlaceholders()
+  }, 500)
+})
+
+// Also try replacing when iframe loads
+function onIframeLoad() {
+  replaceQRPlaceholders()
+}
 
 const refreshPreview = () => {
   renderKey.value++

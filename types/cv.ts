@@ -56,10 +56,16 @@ export interface CustomSection {
   content: string  // markdown
 }
 
-export interface QRCodeConfig {
-  enabled: boolean
+export interface QRCodeItem {
+  id: string
+  url: string
   caption: string
   decoration: string  // base64 or URL of center image
+}
+
+export interface QRCodeConfig {
+  enabled: boolean
+  items: QRCodeItem[]
 }
 
 export interface FooterConfig {

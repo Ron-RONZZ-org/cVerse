@@ -62,25 +62,36 @@ function mdToHtml(md: string): string {
 
 // ─── Language level bar (CEFR) ──────────────────────────────────────
 
-const CEFR_LABELS: Record<CEFRLevel, string> = {
-  A1: 'A1 – Elementary',
-  A2: 'A2 – Pre-Intermediate',
-  B1: 'B1 – Intermediate',
-  B2: 'B2 – Upper Intermediate',
-  C1: 'C1 – Advanced',
-  C2: 'C2 – Mastery'
+const CEFR_LABELS: Record<string, Record<CEFRLevel, string>> = {
+  en: {
+    A1: 'A1 – Elementary',
+    A2: 'A2 – Pre-Intermediate',
+    B1: 'B1 – Intermediate',
+    B2: 'B2 – Upper Intermediate',
+    C1: 'C1 – Advanced',
+    C2: 'C2 – Mastery',
+  },
+  fr: {
+    A1: 'A1 – Débutant',
+    A2: 'A2 – Élémentaire',
+    B1: 'B1 – Intermédiaire',
+    B2: 'B2 – Intermédiaire Supérieur',
+    C1: 'C1 – Avancé',
+    C2: 'C2 – Maîtrise',
+  },
 }
 
 const CEFR_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
-function languageBar(level: CEFRLevel, accent: string): string {
+function languageBar(level: CEFRLevel, accent: string, locale: string): string {
+  const labels = CEFR_LABELS[locale] || CEFR_LABELS.en
   const idx = CEFR_ORDER.indexOf(level)
   const pct = ((idx + 1) / CEFR_ORDER.length) * 100
   return `
     <div class="lang-bar-bg">
       <div class="lang-bar-fill" style="width:${pct}%;background:${accent}"></div>
     </div>
-    <span class="lang-level">${CEFR_LABELS[level] || level}</span>`
+    <span class="lang-level">${labels[level] || level}</span>`
 }
 
 // ─── Strength polygon (SVG) ─────────────────────────────────────────
@@ -100,10 +111,10 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
   }
 
   const n = attributes.length
-  const cx = 150
-  const cy = 150
-  const radius = 120
-  const labelR = 140
+  const cx = 200
+  const cy = 200
+  const radius = 130
+  const labelR = 175
   const angleStep = (2 * Math.PI) / n
   const startAngle = -Math.PI / 2 // start at top
 
@@ -129,18 +140,30 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
     return pts
   })
 
-  // Labels
+  // Labels – compute text length to adjust position
   const labels = attributes.map((a, i) => {
     const angle = startAngle + i * angleStep
-    const x = cx + labelR * Math.cos(angle)
-    const y = cy + labelR * Math.sin(angle)
-    const anchor = angle > Math.PI / 2 && angle < (3 * Math.PI) / 2 ? 'end' : angle === -Math.PI / 2 ? 'middle' : 'start'
+    // Push label outward proportionally to name length (longer names need more room)
+    const nameLen = a.name.length
+    const extraOffset = Math.max(0, (nameLen - 6) * 3)
+    const r = labelR + extraOffset
+    const x = cx + r * Math.cos(angle)
+    const y = cy + r * Math.sin(angle)
+    let anchor: string
+    const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
+    if (normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2) {
+      anchor = 'end'
+    } else if (normAngle === Math.PI / 2 || normAngle === (3 * Math.PI) / 2) {
+      anchor = 'middle'
+    } else {
+      anchor = 'start'
+    }
     return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-size="9" fill="#334155">${escapeHtml(a.name)}</text>`
   }).join('\n')
 
   return `
   <div class="polygon-container">
-    <svg viewBox="0 0 300 300" class="strength-polygon" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 400 400" class="strength-polygon" xmlns="http://www.w3.org/2000/svg">
       <!-- Grid -->
       ${gridPolygons.map(pts => `<polygon points="${pts}" fill="none" stroke="#e2e8f0" stroke-width="1" />`).join('\n')}
       <!-- Axes -->
@@ -176,22 +199,61 @@ function renderSimpleList(attributes: { name: string }[], accent: string): strin
 
 // ─── QR Code (SVG embed) ────────────────────────────────────────────
 
-// Generate a minimal QR-like SVG as a placeholder.
-// In production, this is replaced by the actual qrcode library output.
-function renderQRCode(url: string, decoration: string, caption: string, accent: string): string {
-  // Dynamically import qrcode to generate SVG on the fly
-  // The QR code SVG will be rendered by the printCV utility before printing
-  return `<div class="qr-section" id="qr-section">
-    <div class="qr-code" id="qr-code-container">
-      <!-- QR code will be rendered here by qrcode library -->
-      <svg id="qr-svg" class="qr-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+// Generate a QR placeholder SVG for a single QR item.
+// The placeholder SVG is replaced by the real QR code via qrcode library
+// in printCV.ts and CVPreview.vue.
+function renderQRCodeItem(item: { id: string; url: string; caption: string; decoration: string }): string {
+  const qrId = `qr-svg-${escapeHtml(item.id)}`
+  return `<div class="qr-item">
+    <div class="qr-code" id="qr-container-${escapeHtml(item.id)}">
+      <svg id="${qrId}" class="qr-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
         <rect width="300" height="300" fill="white" rx="8" />
-        <text x="150" y="150" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#94a3b8">QR: ${escapeHtml(url)}</text>
       </svg>
-      ${decoration ? `<img src="${decoration}" class="qr-decoration" alt="decoration" />` : ''}
+      ${item.decoration ? `<img src="${escapeHtml(item.decoration)}" class="qr-decoration" alt="decoration" />` : ''}
     </div>
-    ${caption ? `<div class="qr-caption">${escapeHtml(caption)}</div>` : ''}
+    ${item.caption ? `<div class="qr-caption">${escapeHtml(item.caption)}</div>` : ''}
   </div>`
+}
+
+// ─── Locale-aware section titles ────────────────────────────────────
+
+// ─── Locale-aware strings ────────────────────────────────────────────
+
+const LOCALE_STRINGS: Record<string, Record<string, string>> = {
+  en: {
+    experience: 'Professional Experience',
+    education: 'Education',
+    languages: 'Languages',
+    qualities: 'Qualities',
+    skills: 'Skills',
+    interests: 'Interests',
+    email: 'Email',
+    phone: 'Phone',
+    location: 'Location',
+    age: 'Age',
+    nationality: 'Nationality',
+    web: 'Web',
+    linkedin: 'LinkedIn',
+  },
+  fr: {
+    experience: 'Expérience Professionnelle',
+    education: 'Formation',
+    languages: 'Langues',
+    qualities: 'Qualités',
+    skills: 'Compétences',
+    interests: 'Centres d\'Intérêt',
+    email: 'Email',
+    phone: 'Téléphone',
+    location: 'Localisation',
+    age: 'Âge',
+    nationality: 'Nationalité',
+    web: 'Site Web',
+    linkedin: 'LinkedIn',
+  },
+}
+
+function tStr(key: string, locale: string): string {
+  return LOCALE_STRINGS[locale]?.[key] || LOCALE_STRINGS.en[key] || key
 }
 
 // ─── HTML document builder ──────────────────────────────────────────
@@ -205,11 +267,11 @@ export function renderCV(data: CVData, locale: string): string {
 
   // Collect contact items
   const contactItems: string[] = []
-  if (data.personal.email) contactItems.push(`<span class="contact-item"><span class="contact-label">Email</span> ${escapeHtml(data.personal.email)}</span>`)
-  if (data.personal.phone) contactItems.push(`<span class="contact-item"><span class="contact-label">Phone</span> ${escapeHtml(data.personal.phone)}</span>`)
-  if (data.personal.location) contactItems.push(`<span class="contact-item"><span class="contact-label">Location</span> ${escapeHtml(data.personal.location)}</span>`)
-  if (data.personal.age) contactItems.push(`<span class="contact-item"><span class="contact-label">Age</span> ${escapeHtml(data.personal.age)}</span>`)
-  if (data.personal.nationality) contactItems.push(`<span class="contact-item"><span class="contact-label">Nationality</span> ${escapeHtml(data.personal.nationality)}</span>`)
+  if (data.personal.email) contactItems.push(`<span class="contact-item"><span class="contact-label">${tStr('email', locale)}</span> ${escapeHtml(data.personal.email)}</span>`)
+  if (data.personal.phone) contactItems.push(`<span class="contact-item"><span class="contact-label">${tStr('phone', locale)}</span> ${escapeHtml(data.personal.phone)}</span>`)
+  if (data.personal.location) contactItems.push(`<span class="contact-item"><span class="contact-label">${tStr('location', locale)}</span> ${escapeHtml(data.personal.location)}</span>`)
+  if (data.personal.age) contactItems.push(`<span class="contact-item"><span class="contact-label">${tStr('age', locale)}</span> ${escapeHtml(data.personal.age)}</span>`)
+  if (data.personal.nationality) contactItems.push(`<span class="contact-item"><span class="contact-label">${tStr('nationality', locale)}</span> ${escapeHtml(data.personal.nationality)}</span>`)
 
   // Custom fields
   for (const f of data.personal.customFields) {
@@ -220,8 +282,8 @@ export function renderCV(data: CVData, locale: string): string {
 
   // Web links
   const webLinks: string[] = []
-  if (data.personal.website) webLinks.push(`<span class="contact-item"><span class="contact-label">Web</span> ${escapeHtml(data.personal.website)}</span>`)
-  if (data.personal.linkedin) webLinks.push(`<span class="contact-item"><span class="contact-label">LinkedIn</span> ${escapeHtml(data.personal.linkedin)}</span>`)
+  if (data.personal.website) webLinks.push(`<span class="contact-item"><span class="contact-label">${tStr('web', locale)}</span> ${escapeHtml(data.personal.website)}</span>`)
+  if (data.personal.linkedin) webLinks.push(`<span class="contact-item"><span class="contact-label">${tStr('linkedin', locale)}</span> ${escapeHtml(data.personal.linkedin)}</span>`)
 
   // Sections
   const sections: string[] = []
@@ -241,7 +303,7 @@ export function renderCV(data: CVData, locale: string): string {
           ${exp.description ? `<div class="entry-body">${mdToHtml(exp.description)}</div>` : ''}
         </div>`
     }).join('\n')
-    sections.push(sectionBlock('Professional Experience', items, accent))
+    sections.push(sectionBlock(tStr('experience', locale), items, accent))
   }
 
   // ── Education ──
@@ -259,7 +321,7 @@ export function renderCV(data: CVData, locale: string): string {
           ${edu.description ? `<div class="entry-body">${mdToHtml(edu.description)}</div>` : ''}
         </div>`
     }).join('\n')
-    sections.push(sectionBlock('Education', items, accent))
+    sections.push(sectionBlock(tStr('education', locale), items, accent))
   }
 
   // ── Languages ──
@@ -267,10 +329,10 @@ export function renderCV(data: CVData, locale: string): string {
     const items = data.languages.map(lang =>
       `<div class="lang-row">
         <span class="lang-name">${escapeHtml(lang.name)}</span>
-        ${languageBar(lang.level, accent)}
+        ${languageBar(lang.level, accent, locale)}
       </div>`
     ).join('\n')
-    sections.push(sectionBlock('Languages', items, accent))
+    sections.push(sectionBlock(tStr('languages', locale), items, accent))
   }
 
   // ── Qualities ──
@@ -278,17 +340,17 @@ export function renderCV(data: CVData, locale: string): string {
     const body = data.qualitiesShowStrength
       ? renderStrengthPolygon(data.qualityAttributes, accent)
       : renderSimpleList(data.qualityAttributes, accent)
-    sections.push(sectionBlock('Qualities', body, accent))
+    sections.push(sectionBlock(tStr('qualities', locale), body, accent))
   }
 
   // ── Skills ──
   if (data.skills.trim()) {
-    sections.push(sectionBlock('Skills', mdToHtml(data.skills), accent))
+    sections.push(sectionBlock(tStr('skills', locale), mdToHtml(data.skills), accent))
   }
 
   // ── Interests ──
   if (data.interests.trim()) {
-    sections.push(sectionBlock('Interests', mdToHtml(data.interests), accent))
+    sections.push(sectionBlock(tStr('interests', locale), mdToHtml(data.interests), accent))
   }
 
   // ── Custom Sections ──
@@ -300,11 +362,9 @@ export function renderCV(data: CVData, locale: string): string {
 
   // ── QR Code ──
   let qrSection = ''
-  if (data.qrCode.enabled && data.personal.website) {
-    const caption = data.qrCode.caption || (locale === 'fr'
-      ? 'Scannez pour en savoir plus sur mon site web'
-      : 'Scan to learn more about me on my website')
-    qrSection = renderQRCode(data.personal.website, data.qrCode.decoration, caption, accent)
+  if (data.qrCode.enabled && data.qrCode.items.length > 0) {
+    const items = data.qrCode.items.map(item => renderQRCodeItem(item)).join('\n')
+    qrSection = `<div class="qr-section">${items}</div>`
   }
 
   // ── Footer ──
@@ -574,16 +634,24 @@ export function renderCV(data: CVData, locale: string): string {
   /* ── QR Code ── */
   .qr-section {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6mm;
     padding: 4mm 0;
     page-break-inside: avoid;
   }
 
+  .qr-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 1 auto;
+  }
+
   .qr-code {
     position: relative;
-    width: 50mm;
-    height: 50mm;
+    width: 40mm;
+    height: 40mm;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -608,6 +676,8 @@ export function renderCV(data: CVData, locale: string): string {
     font-size: 8pt;
     color: #64748b;
     text-align: center;
+    max-width: 40mm;
+    word-wrap: break-word;
   }
 
   /* ── Footer ── */

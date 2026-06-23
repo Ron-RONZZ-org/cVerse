@@ -103,7 +103,7 @@
     "attributeName": "Quality Name",
     "attributeNamePlaceholder": "e.g., Creativity",
     "attributeScore": "Strength",
-    "showStrength": "Show strength scores",
+    "showStrength": "Show as polygon strength diagram",
     "emptyAttributes": "No qualities added yet. Click 'Add Attribute' to start."
   },
   "skills": {
@@ -126,14 +126,20 @@
     "empty": "No custom sections added yet."
   },
   "qrCode": {
-    "title": "QR Code",
-    "enable": "Show QR Code",
+    "title": "QR Codes",
+    "enable": "Show QR Codes",
+    "add": "Add QR Code",
+    "qrCode": "QR Code",
+    "url": "URL",
+    "urlPlaceholder": "https://example.com",
     "caption": "Caption",
-    "captionPlaceholder": "Scan to learn more about me on my website",
+    "captionPlaceholder": "Scan to learn more",
     "decoration": "Center Decoration Image",
     "uploadDecoration": "Upload Decoration",
     "changeDecoration": "Change Decoration",
-    "removeDecoration": "Remove"
+    "removeDecoration": "Remove",
+    "remove": "Remove",
+    "empty": "No QR codes added yet. Click 'Add QR Code' to start."
   },
   "footer": {
     "title": "Credit Footer",
@@ -148,5 +154,13 @@
   "sort": {
     "newest": "Sort: Newest First",
     "oldest": "Sort: Oldest First"
+  },
+  "sectionTitles": {
+    "experience": "Professional Experience",
+    "education": "Education",
+    "languages": "Languages",
+    "qualities": "Qualities",
+    "skills": "Skills",
+    "interests": "Interests"
   }
 }
