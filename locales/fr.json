@@ -5,9 +5,7 @@
     "save": "Enregistrer en JSON",
     "load": "Charger depuis JSON",
     "clear": "Tout effacer",
-    "export": "Exporter en PDF",
-    "cancel": "Annuler",
-    "confirm": "Confirmer"
+    "export": "Exporter en PDF"
   },
   "personal": {
     "title": "Informations Personnelles",
@@ -34,6 +32,21 @@
     "agePlaceholder": "30",
     "nationality": "Nationalité",
     "nationalityPlaceholder": "Votre nationalité"
+  },
+  "customFields": {
+    "title": "Champs Personnalisés d'En-tête",
+    "add": "Ajouter un champ",
+    "field": "Champ",
+    "label": "Étiquette",
+    "labelPlaceholder": "ex : GitHub",
+    "value": "Valeur",
+    "valuePlaceholder": "ex : github.com/votreprofil",
+    "remove": "Supprimer",
+    "empty": "Aucun champ personnalisé ajouté."
+  },
+  "settings": {
+    "title": "Paramètres de Style du CV",
+    "accentColor": "Couleur d'Accentuation"
   },
   "experience": {
     "title": "Expérience Professionnelle",
@@ -67,6 +80,21 @@
     "moveUp": "Monter",
     "moveDown": "Descendre"
   },
+  "languages": {
+    "title": "Langues",
+    "add": "Ajouter une langue",
+    "language": "Langue",
+    "name": "Langue",
+    "namePlaceholder": "ex : Anglais, Français, Espagnol",
+    "level": "Niveau de Compétence",
+    "level1": "Élémentaire",
+    "level2": "Limité",
+    "level3": "Professionnel",
+    "level4": "Professionnel Supérieur",
+    "level5": "Natif / Bilingue",
+    "remove": "Supprimer",
+    "empty": "Aucune langue ajoutée."
+  },
   "qualities": {
     "title": "Qualités",
     "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)\nex :\n- Créativité\n- Autonomie\n- Gestion des priorités\n- Sens des responsabilités"
@@ -79,13 +107,23 @@
     "title": "Centres d'Intérêt",
     "placeholder": "Listez vos hobbies et centres d'intérêt (Markdown supporté)\nex :\n- Photographie\n- Randonnée\n- Contributions open source\n- Lecture"
   },
+  "customSections": {
+    "title": "Sections Personnalisées",
+    "add": "Ajouter une section",
+    "section": "Section",
+    "sectionTitle": "Titre de la Section",
+    "sectionTitlePlaceholder": "ex : Certifications, Publications",
+    "content": "Contenu (Markdown supporté)",
+    "contentPlaceholder": "Rédigez le contenu de cette section en Markdown...",
+    "remove": "Supprimer",
+    "empty": "Aucune section personnalisée ajoutée."
+  },
+  "preview": {
+    "title": "Aperçu du CV & Export",
+    "refresh": "Rafraîchir l'aperçu"
+  },
   "sort": {
     "newest": "Trier : Plus récent d'abord",
     "oldest": "Trier : Plus ancien d'abord"
-  },
-  "pdfSettings": {
-    "title": "Paramètres PDF",
-    "dividerColor": "Couleur des Séparateurs de Section",
-    "linkColor": "Couleur des Liens"
   }
 }

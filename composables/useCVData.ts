@@ -1,28 +1,32 @@
-import type { CVData, PersonalInfo, ExperienceBlock, EducationBlock } from '~/types/cv'
+import type { CVData, PersonalInfo, ExperienceBlock, EducationBlock, LanguageSkill, CustomSection, CustomField } from '~/types/cv'
 
 const STORAGE_KEY = 'cv-data'
 
+const emptyCV = (): CVData => ({
+  personal: {
+    name: '',
+    email: '',
+    headline: '',
+    location: '',
+    phone: '',
+    website: '',
+    linkedin: '',
+    age: '',
+    nationality: '',
+    customFields: []
+  },
+  experience: [],
+  education: [],
+  languages: [],
+  customSections: [],
+  qualities: '',
+  skills: '',
+  interests: '',
+  accentColor: '#2563eb'
+})
+
 export const useCVData = () => {
-  const cvData = useState<CVData>('cvData', () => ({
-    personal: {
-      name: '',
-      email: '',
-      headline: '',
-      location: '',
-      phone: '',
-      website: '',
-      linkedin: '',
-      age: '',
-      nationality: ''
-    },
-    experience: [],
-    education: [],
-    qualities: '',
-    skills: '',
-    interests: '',
-    dividerColor: '#000000',  // Default black color for dividers
-    linkColor: '#0000FF'  // Default blue color for links
-  }))
+  const cvData = useState<CVData>('cvData', () => emptyCV())
 
   // Load data from localStorage on initialization
   const loadFromStorage = () => {
@@ -31,18 +35,15 @@ export const useCVData = () => {
       if (stored) {
         try {
           const loadedData = JSON.parse(stored)
-          // Ensure interests field exists for backward compatibility
-          if (!loadedData.interests) {
-            loadedData.interests = ''
-          }
-          // Ensure dividerColor field exists for backward compatibility
-          if (!loadedData.dividerColor) {
-            loadedData.dividerColor = '#000000'
-          }
-          // Ensure linkColor field exists for backward compatibility
-          if (!loadedData.linkColor) {
-            loadedData.linkColor = '#0000FF'
-          }
+          // Ensure new fields exist for backward compatibility
+          if (!loadedData.languages) loadedData.languages = []
+          if (!loadedData.customSections) loadedData.customSections = []
+          if (!loadedData.personal) loadedData.personal = {}
+          if (!loadedData.personal.customFields) loadedData.personal.customFields = []
+          if (!loadedData.accentColor) loadedData.accentColor = '#2563eb'
+          if (!loadedData.qualities) loadedData.qualities = ''
+          if (!loadedData.skills) loadedData.skills = ''
+          if (!loadedData.interests) loadedData.interests = ''
           cvData.value = loadedData
         } catch (e) {
           console.error('Failed to parse stored CV data:', e)
@@ -63,7 +64,7 @@ export const useCVData = () => {
     saveToStorage()
   }, { deep: true })
 
-  // Add experience block
+  // --- Experience ---
   const addExperience = () => {
     cvData.value.experience.push({
       id: crypto.randomUUID(),
@@ -75,12 +76,10 @@ export const useCVData = () => {
     })
   }
 
-  // Remove experience block
   const removeExperience = (id: string) => {
     cvData.value.experience = cvData.value.experience.filter(exp => exp.id !== id)
   }
 
-  // Move experience block
   const moveExperience = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1
     if (newIndex >= 0 && newIndex < cvData.value.experience.length) {
@@ -90,7 +89,7 @@ export const useCVData = () => {
     }
   }
 
-  // Add education block
+  // --- Education ---
   const addEducation = () => {
     cvData.value.education.push({
       id: crypto.randomUUID(),
@@ -102,12 +101,10 @@ export const useCVData = () => {
     })
   }
 
-  // Remove education block
   const removeEducation = (id: string) => {
     cvData.value.education = cvData.value.education.filter(edu => edu.id !== id)
   }
 
-  // Move education block
   const moveEducation = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1
     if (newIndex >= 0 && newIndex < cvData.value.education.length) {
@@ -117,7 +114,46 @@ export const useCVData = () => {
     }
   }
 
-  // Sort experience by date
+  // --- Languages ---
+  const addLanguage = () => {
+    cvData.value.languages.push({
+      id: crypto.randomUUID(),
+      name: '',
+      level: 3
+    })
+  }
+
+  const removeLanguage = (id: string) => {
+    cvData.value.languages = cvData.value.languages.filter(l => l.id !== id)
+  }
+
+  // --- Custom Sections ---
+  const addCustomSection = () => {
+    cvData.value.customSections.push({
+      id: crypto.randomUUID(),
+      title: '',
+      content: ''
+    })
+  }
+
+  const removeCustomSection = (id: string) => {
+    cvData.value.customSections = cvData.value.customSections.filter(s => s.id !== id)
+  }
+
+  // --- Custom Fields ---
+  const addCustomField = () => {
+    cvData.value.personal.customFields.push({
+      id: crypto.randomUUID(),
+      label: '',
+      value: ''
+    })
+  }
+
+  const removeCustomField = (id: string) => {
+    cvData.value.personal.customFields = cvData.value.personal.customFields.filter(f => f.id !== id)
+  }
+
+  // --- Sort helpers ---
   const sortExperience = (order: 'newest' | 'oldest') => {
     cvData.value.experience.sort((a, b) => {
       const dateA = a.startDate || ''
@@ -126,7 +162,6 @@ export const useCVData = () => {
     })
   }
 
-  // Sort education by date
   const sortEducation = (order: 'newest' | 'oldest') => {
     cvData.value.education.sort((a, b) => {
       const dateA = a.startDate || ''
@@ -135,34 +170,14 @@ export const useCVData = () => {
     })
   }
 
-  // Clear all data
+  // --- Clear / Export / Import ---
   const clearData = () => {
-    cvData.value = {
-      personal: {
-        name: '',
-        email: '',
-        headline: '',
-        location: '',
-        phone: '',
-        website: '',
-        linkedin: '',
-        age: '',
-        nationality: ''
-      },
-      experience: [],
-      education: [],
-      qualities: '',
-      skills: '',
-      interests: '',
-      dividerColor: '#000000',
-      linkColor: '#0000FF'
-    }
+    cvData.value = emptyCV()
     if (process.client) {
       localStorage.removeItem(STORAGE_KEY)
     }
   }
 
-  // Export to JSON
   const exportToJSON = () => {
     const dataStr = JSON.stringify(cvData.value, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
@@ -174,7 +189,6 @@ export const useCVData = () => {
     URL.revokeObjectURL(url)
   }
 
-  // Import from JSON
   const importFromJSON = (file: File) => {
     return new Promise<void>((resolve, reject) => {
       const reader = new FileReader()
@@ -196,16 +210,12 @@ export const useCVData = () => {
     cvData,
     loadFromStorage,
     saveToStorage,
-    addExperience,
-    removeExperience,
-    moveExperience,
-    sortExperience,
-    addEducation,
-    removeEducation,
-    moveEducation,
-    sortEducation,
+    addExperience, removeExperience, moveExperience, sortExperience,
+    addEducation, removeEducation, moveEducation, sortEducation,
+    addLanguage, removeLanguage,
+    addCustomSection, removeCustomSection,
+    addCustomField, removeCustomField,
     clearData,
-    exportToJSON,
-    importFromJSON
+    exportToJSON, importFromJSON
   }
 }

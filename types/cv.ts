@@ -1,3 +1,9 @@
+export interface CustomField {
+  id: string
+  label: string
+  value: string
+}
+
 export interface PersonalInfo {
   name: string
   email: string
@@ -9,6 +15,7 @@ export interface PersonalInfo {
   linkedin?: string
   age?: string
   nationality?: string
+  customFields: CustomField[]
 }
 
 export interface ExperienceBlock {
@@ -29,13 +36,26 @@ export interface EducationBlock {
   description?: string
 }
 
+export interface LanguageSkill {
+  id: string
+  name: string
+  level: number  // 1-5
+}
+
+export interface CustomSection {
+  id: string
+  title: string
+  content: string  // markdown
+}
+
 export interface CVData {
   personal: PersonalInfo
   experience: ExperienceBlock[]
   education: EducationBlock[]
+  languages: LanguageSkill[]
+  customSections: CustomSection[]
   qualities: string
   skills: string
   interests: string
-  dividerColor?: string  // Color for section divider lines in PDF
-  linkColor?: string  // Color for links in PDF
+  accentColor: string
 }

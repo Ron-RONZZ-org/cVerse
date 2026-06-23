@@ -1,0 +1,87 @@
+import type { CVData } from '~/types/cv'
+import { renderCV } from './cvTemplate'
+
+/**
+ * Opens the CV in a hidden iframe and triggers the browser's print dialog.
+ * The user can then choose "Save as PDF" to export a professional PDF.
+ */
+export function printCV(data: CVData, locale: string): void {
+  const html = renderCV(data, locale)
+
+  // Build a name for the document (browsers often use <title> as the suggested filename)
+  const safeName = data.personal.name
+    ? data.personal.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '')
+    : 'CV'
+
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.top = '-9999px'
+  iframe.style.left = '-9999px'
+  iframe.style.width = '210mm'
+  iframe.style.height = '297mm'
+  iframe.style.border = 'none'
+  iframe.title = `CV_${safeName}`
+
+  document.body.appendChild(iframe)
+
+  // Write the CV HTML into the iframe
+  const doc = iframe.contentDocument || iframe.contentWindow?.document
+  if (!doc) {
+    console.error('Failed to create print iframe')
+    document.body.removeChild(iframe)
+    return
+  }
+
+  doc.open()
+  doc.write(html)
+  doc.close()
+
+  // Wait for images (like photo) to load before printing
+  const waitForImages = () => {
+    const images = doc.images
+    if (images.length === 0) {
+      triggerPrint()
+      return
+    }
+
+    let loaded = 0
+    const total = images.length
+
+    const onLoad = () => {
+      loaded++
+      if (loaded >= total) {
+        triggerPrint()
+      }
+    }
+
+    for (const img of Array.from(images)) {
+      if (img.complete) {
+        onLoad()
+      } else {
+        img.addEventListener('load', onLoad)
+        img.addEventListener('error', onLoad) // Still print even if image fails
+      }
+    }
+  }
+
+  const triggerPrint = () => {
+    // Small extra delay to ensure rendering is complete
+    setTimeout(() => {
+      try {
+        iframe.contentWindow?.focus()
+        iframe.contentWindow?.print()
+      } catch (e) {
+        console.error('Print failed:', e)
+      } finally {
+        // Remove iframe after print dialog closes (or after a timeout)
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe)
+          }
+        }, 1000)
+      }
+    }, 300)
+  }
+
+  waitForImages()
+}

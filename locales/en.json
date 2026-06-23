@@ -5,9 +5,7 @@
     "save": "Save as JSON",
     "load": "Load from JSON",
     "clear": "Clear All",
-    "export": "Export to PDF",
-    "cancel": "Cancel",
-    "confirm": "Confirm"
+    "export": "Export to PDF"
   },
   "personal": {
     "title": "Personal Information",
@@ -34,6 +32,21 @@
     "agePlaceholder": "30",
     "nationality": "Nationality",
     "nationalityPlaceholder": "Your nationality"
+  },
+  "customFields": {
+    "title": "Custom Header Fields",
+    "add": "Add Field",
+    "field": "Field",
+    "label": "Label",
+    "labelPlaceholder": "e.g., GitHub",
+    "value": "Value",
+    "valuePlaceholder": "e.g., github.com/yourprofile",
+    "remove": "Remove",
+    "empty": "No custom fields added yet."
+  },
+  "settings": {
+    "title": "CV Style Settings",
+    "accentColor": "Accent Color"
   },
   "experience": {
     "title": "Professional Experience",
@@ -67,6 +80,21 @@
     "moveUp": "Move Up",
     "moveDown": "Move Down"
   },
+  "languages": {
+    "title": "Languages",
+    "add": "Add Language",
+    "language": "Language",
+    "name": "Language",
+    "namePlaceholder": "e.g., English, French, Spanish",
+    "level": "Proficiency Level",
+    "level1": "Elementary",
+    "level2": "Limited Working",
+    "level3": "Professional Working",
+    "level4": "Full Professional",
+    "level5": "Native / Bilingual",
+    "remove": "Remove",
+    "empty": "No languages added yet."
+  },
   "qualities": {
     "title": "Qualities",
     "placeholder": "List your key qualities and soft skills (Markdown supported)\ne.g.:\n- Creativity\n- Autonomy\n- Priority management\n- Sense of responsibility"
@@ -79,13 +107,23 @@
     "title": "Interests",
     "placeholder": "List your hobbies and interests (Markdown supported)\ne.g.:\n- Photography\n- Hiking\n- Open source contributions\n- Reading"
   },
+  "customSections": {
+    "title": "Custom Sections",
+    "add": "Add Section",
+    "section": "Section",
+    "sectionTitle": "Section Title",
+    "sectionTitlePlaceholder": "e.g., Certifications, Publications",
+    "content": "Content (Markdown supported)",
+    "contentPlaceholder": "Write the content for this section using Markdown...",
+    "remove": "Remove",
+    "empty": "No custom sections added yet."
+  },
+  "preview": {
+    "title": "CV Preview & Export",
+    "refresh": "Refresh Preview"
+  },
   "sort": {
     "newest": "Sort: Newest First",
     "oldest": "Sort: Oldest First"
-  },
-  "pdfSettings": {
-    "title": "PDF Settings",
-    "dividerColor": "Section Divider Color",
-    "linkColor": "Link Color"
   }
 }

@@ -1,0 +1,487 @@
+import type { CVData } from '~/types/cv'
+
+// ─── Inline markdown to HTML ────────────────────────────────────────
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function inlineMarkdown(text: string): string {
+  let html = escapeHtml(text)
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>')
+  // Italic
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  html = html.replace(/_(.+?)_/g, '<em>$1</em>')
+  // Links [text](url)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+  return html
+}
+
+function mdToHtml(md: string): string {
+  if (!md) return ''
+  const lines = md.split('\n')
+  const out: string[] = []
+  let inList = false
+
+  for (const rawLine of lines) {
+    const indent = rawLine.match(/^(\s*)/)?.[1].length ?? 0
+    const trimmed = rawLine.trim()
+
+    if (!trimmed) {
+      if (inList) { out.push('</ul>'); inList = false }
+      out.push('<div class="md-empty"></div>')
+      continue
+    }
+
+    // Bullet point
+    const bulletMatch = trimmed.match(/^[*-]\s+(.*)/)
+    if (bulletMatch) {
+      if (!inList) { out.push('<ul class="md-list">'); inList = true }
+      const margin = Math.floor(indent / 2) * 14
+      const style = margin ? ` style="margin-left:${margin}px"` : ''
+      out.push(`<li${style}>${inlineMarkdown(bulletMatch[1])}</li>`)
+      continue
+    }
+
+    if (inList) { out.push('</ul>'); inList = false }
+
+    const margin = Math.floor(indent / 2) * 14
+    const style = margin ? ` style="margin-left:${margin}px"` : ''
+    out.push(`<p${style}>${inlineMarkdown(trimmed)}</p>`)
+  }
+
+  if (inList) out.push('</ul>')
+  return out.join('\n')
+}
+
+// ─── Language level bar ─────────────────────────────────────────────
+
+const LEVEL_LABELS: Record<number, string> = {
+  1: 'Elementary',
+  2: 'Limited',
+  3: 'Professional',
+  4: 'Full Professional',
+  5: 'Native / Bilingual'
+}
+
+function languageBar(level: number, accent: string): string {
+  const pct = (level / 5) * 100
+  return `
+    <div class="lang-bar-bg">
+      <div class="lang-bar-fill" style="width:${pct}%;background:${accent}"></div>
+    </div>
+    <span class="lang-level">${LEVEL_LABELS[level] || level}</span>`
+}
+
+// ─── HTML document builder ──────────────────────────────────────────
+
+export function renderCV(data: CVData, locale: string): string {
+  const accent = data.accentColor || '#2563eb'
+  const name = escapeHtml(data.personal.name || '')
+  const headline = data.personal.headline ? escapeHtml(data.personal.headline) : ''
+  const photo = data.personal.photo || ''
+  const hasPhoto = !!photo
+
+  // Collect contact items
+  const contactItems: string[] = []
+  if (data.personal.email) contactItems.push(`<span class="contact-item"><span class="contact-label">Email</span> ${escapeHtml(data.personal.email)}</span>`)
+  if (data.personal.phone) contactItems.push(`<span class="contact-item"><span class="contact-label">Phone</span> ${escapeHtml(data.personal.phone)}</span>`)
+  if (data.personal.location) contactItems.push(`<span class="contact-item"><span class="contact-label">Location</span> ${escapeHtml(data.personal.location)}</span>`)
+  if (data.personal.age) contactItems.push(`<span class="contact-item"><span class="contact-label">Age</span> ${escapeHtml(data.personal.age)}</span>`)
+  if (data.personal.nationality) contactItems.push(`<span class="contact-item"><span class="contact-label">Nationality</span> ${escapeHtml(data.personal.nationality)}</span>`)
+
+  // Custom fields
+  for (const f of data.personal.customFields) {
+    if (f.label && f.value) {
+      contactItems.push(`<span class="contact-item"><span class="contact-label">${escapeHtml(f.label)}</span> ${escapeHtml(f.value)}</span>`)
+    }
+  }
+
+  // Web links
+  const webLinks: string[] = []
+  if (data.personal.website) webLinks.push(`<span class="contact-item"><span class="contact-label">Web</span> ${escapeHtml(data.personal.website)}</span>`)
+  if (data.personal.linkedin) webLinks.push(`<span class="contact-item"><span class="contact-label">LinkedIn</span> ${escapeHtml(data.personal.linkedin)}</span>`)
+
+  // Sections
+  const sections: string[] = []
+
+  // ── Experience ──
+  if (data.experience.length > 0) {
+    const items = data.experience.map(exp => {
+      const period = `${escapeHtml(exp.startDate)} – ${escapeHtml(exp.endDate)}`
+      const loc = exp.location ? escapeHtml(exp.location) : ''
+      return `
+        <div class="entry">
+          <div class="entry-header">
+            <span class="entry-title">${escapeHtml(exp.title)}</span>
+            <span class="entry-period">${period}</span>
+          </div>
+          ${loc ? `<div class="entry-subtitle">${loc}</div>` : ''}
+          ${exp.description ? `<div class="entry-body">${mdToHtml(exp.description)}</div>` : ''}
+        </div>`
+    }).join('\n')
+    sections.push(sectionBlock('Professional Experience', items, accent))
+  }
+
+  // ── Education ──
+  if (data.education.length > 0) {
+    const items = data.education.map(edu => {
+      const period = `${escapeHtml(edu.startDate)} – ${escapeHtml(edu.endDate)}`
+      const loc = edu.location ? escapeHtml(edu.location) : ''
+      return `
+        <div class="entry">
+          <div class="entry-header">
+            <span class="entry-title">${escapeHtml(edu.degree)}</span>
+            <span class="entry-period">${period}</span>
+          </div>
+          ${loc ? `<div class="entry-subtitle">${loc}</div>` : ''}
+          ${edu.description ? `<div class="entry-body">${mdToHtml(edu.description)}</div>` : ''}
+        </div>`
+    }).join('\n')
+    sections.push(sectionBlock('Education', items, accent))
+  }
+
+  // ── Languages ──
+  if (data.languages.length > 0) {
+    const items = data.languages.map(lang =>
+      `<div class="lang-row">
+        <span class="lang-name">${escapeHtml(lang.name)}</span>
+        ${languageBar(lang.level, accent)}
+      </div>`
+    ).join('\n')
+    sections.push(sectionBlock('Languages', items, accent))
+  }
+
+  // ── Qualities ──
+  if (data.qualities.trim()) {
+    sections.push(sectionBlock('Qualities', mdToHtml(data.qualities), accent))
+  }
+
+  // ── Skills ──
+  if (data.skills.trim()) {
+    sections.push(sectionBlock('Skills', mdToHtml(data.skills), accent))
+  }
+
+  // ── Interests ──
+  if (data.interests.trim()) {
+    sections.push(sectionBlock('Interests', mdToHtml(data.interests), accent))
+  }
+
+  // ── Custom Sections ──
+  for (const cs of data.customSections) {
+    if (cs.title.trim() && cs.content.trim()) {
+      sections.push(sectionBlock(escapeHtml(cs.title), mdToHtml(cs.content), accent))
+    }
+  }
+
+  // ── Assemble full HTML ──
+  return `<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+<meta charset="utf-8">
+<title>CV – ${name || 'document'}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #1e293b;
+    background: #f1f5f9;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cv-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Accent top bar ── */
+  .accent-bar {
+    height: 5mm;
+    background: ${accent};
+  }
+
+  /* ── Header ── */
+  .cv-header {
+    padding: 10mm 12mm 6mm 12mm;
+    display: flex;
+    align-items: flex-start;
+    gap: 8mm;
+  }
+
+  .header-main { flex: 1; min-width: 0; }
+
+  .cv-name {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  .cv-headline {
+    font-size: 11pt;
+    color: ${accent};
+    font-weight: 500;
+    margin-top: 2mm;
+  }
+
+  .header-photo {
+    flex-shrink: 0;
+    width: 32mm;
+    height: 32mm;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid ${accent}20;
+  }
+
+  /* ── Contact divider ── */
+  .contact-divider {
+    height: 1.5px;
+    background: linear-gradient(to right, ${accent}, ${accent}40, transparent);
+    margin: 0 12mm;
+  }
+
+  /* ── Contact row ── */
+  .contact-row {
+    padding: 3mm 12mm;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2mm 5mm;
+    font-size: 9pt;
+    color: #475569;
+  }
+
+  .contact-item {
+    white-space: nowrap;
+  }
+
+  .contact-label {
+    font-weight: 600;
+    color: ${accent};
+    margin-right: 1mm;
+  }
+
+  .contact-row + .contact-row {
+    padding-top: 0;
+  }
+
+  /* ── Sections ── */
+  .cv-sections {
+    padding: 4mm 12mm 8mm 12mm;
+  }
+
+  .section {
+    margin-bottom: 5mm;
+    page-break-inside: avoid;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    margin-bottom: 2.5mm;
+    padding-bottom: 0.8mm;
+    border-bottom: 1.5px solid ${accent};
+  }
+
+  .section-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: ${accent};
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Entry (experience/education) ── */
+  .entry {
+    margin-bottom: 3mm;
+    page-break-inside: avoid;
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 3mm;
+  }
+
+  .entry-title {
+    font-weight: 600;
+    font-size: 10pt;
+    color: #0f172a;
+  }
+
+  .entry-period {
+    font-size: 9pt;
+    color: ${accent};
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .entry-subtitle {
+    font-size: 9pt;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 0.3mm;
+  }
+
+  .entry-body {
+    margin-top: 1mm;
+    font-size: 9.5pt;
+    color: #334155;
+  }
+
+  /* ── Language rows ── */
+  .lang-row {
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+    margin-bottom: 2mm;
+  }
+
+  .lang-name {
+    font-weight: 500;
+    min-width: 30mm;
+    font-size: 10pt;
+  }
+
+  .lang-bar-bg {
+    flex: 1;
+    max-width: 50mm;
+    height: 5px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .lang-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+
+  .lang-level {
+    font-size: 8.5pt;
+    color: #64748b;
+    min-width: 28mm;
+  }
+
+  /* ── Markdown content ── */
+  .entry-body p,
+  .section > p {
+    margin-bottom: 1mm;
+  }
+
+  .md-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5mm 0 1mm 0;
+  }
+
+  .md-list li {
+    position: relative;
+    padding-left: 5mm;
+    margin-bottom: 0.5mm;
+  }
+
+  .md-list li::before {
+    content: "•";
+    position: absolute;
+    left: 1.5mm;
+    color: ${accent};
+    font-weight: bold;
+  }
+
+  .md-empty {
+    height: 1.5mm;
+  }
+
+  a {
+    color: ${accent};
+    text-decoration: none;
+  }
+
+  /* ── Print only ── */
+  @media print {
+    body {
+      background: white;
+    }
+
+    .cv-page {
+      box-shadow: none;
+      margin: 0;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .section {
+      page-break-inside: avoid;
+    }
+
+    .entry {
+      page-break-inside: avoid;
+    }
+  }
+
+  /* ── Screen only (preview) ── */
+  @media screen {
+    .cv-page {
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      margin: 16px auto;
+      border-radius: 2px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="cv-page">
+  <div class="accent-bar"></div>
+
+  <div class="cv-header">
+    <div class="header-main">
+      <div class="cv-name">${name}</div>
+      ${headline ? `<div class="cv-headline">${headline}</div>` : ''}
+    </div>
+    ${hasPhoto ? `<img class="header-photo" src="${photo}" alt="Photo" />` : ''}
+  </div>
+
+  ${contactItems.length > 0 ? '<div class="contact-divider"></div>' : ''}
+  ${contactItems.length > 0 ? `<div class="contact-row">${contactItems.join('')}</div>` : ''}
+  ${webLinks.length > 0 ? `<div class="contact-row">${webLinks.join('')}</div>` : ''}
+
+  <div class="cv-sections">
+    ${sections.join('\n')}
+  </div>
+</div>
+</body>
+</html>`
+}
+
+function sectionBlock(title: string, body: string, accent: string): string {
+  return `
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">${title}</span>
+  </div>
+  ${body}
+</div>`
+}

@@ -50,29 +50,45 @@
         </div>
       </div>
 
-      <!-- PDF Settings -->
+      <!-- Custom Fields -->
       <div class="section">
-        <h2>{{ t('pdfSettings.title') }}</h2>
-        <div class="form-group">
-          <label>{{ t('pdfSettings.dividerColor') }}</label>
-          <div class="color-picker-wrapper">
-            <input 
-              v-model="cvData.dividerColor" 
-              type="color" 
-              class="color-picker"
-            />
-            <span class="color-value">{{ cvData.dividerColor }}</span>
+        <div class="section-header">
+          <h2>{{ t('customFields.title') }}</h2>
+          <button @click="addCustomField" class="btn btn-primary">{{ t('customFields.add') }}</button>
+        </div>
+        <p v-if="cvData.personal.customFields.length === 0" class="empty-message">
+          {{ t('customFields.empty') }}
+        </p>
+        <div
+          v-for="(field, index) in cvData.personal.customFields"
+          :key="field.id"
+          class="block"
+        >
+          <div class="block-header">
+            <h3>{{ t('customFields.field') }} #{{ index + 1 }}</h3>
+            <button @click="removeCustomField(field.id)" class="btn-icon btn-danger" :title="t('customFields.remove')">✕</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>{{ t('customFields.label') }}</label>
+              <input v-model="field.label" type="text" :placeholder="t('customFields.labelPlaceholder')" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('customFields.value') }}</label>
+              <input v-model="field.value" type="text" :placeholder="t('customFields.valuePlaceholder')" />
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- PDF Settings -->
+      <div class="section">
+        <h2>{{ t('settings.title') }}</h2>
         <div class="form-group">
-          <label>{{ t('pdfSettings.linkColor') }}</label>
+          <label>{{ t('settings.accentColor') }}</label>
           <div class="color-picker-wrapper">
-            <input 
-              v-model="cvData.linkColor" 
-              type="color" 
-              class="color-picker"
-            />
-            <span class="color-value">{{ cvData.linkColor }}</span>
+            <input v-model="cvData.accentColor" type="color" class="color-picker" />
+            <span class="color-value">{{ cvData.accentColor }}</span>
           </div>
         </div>
       </div>
@@ -139,6 +155,43 @@
         </p>
       </div>
 
+      <!-- Languages -->
+      <div class="section">
+        <div class="section-header">
+          <h2>{{ t('languages.title') }}</h2>
+          <button @click="addLanguage" class="btn btn-primary">{{ t('languages.add') }}</button>
+        </div>
+        <p v-if="cvData.languages.length === 0" class="empty-message">
+          {{ t('languages.empty') }}
+        </p>
+        <div
+          v-for="(lang, index) in cvData.languages"
+          :key="lang.id"
+          class="block"
+        >
+          <div class="block-header">
+            <h3>{{ t('languages.language') }} #{{ index + 1 }}</h3>
+            <button @click="removeLanguage(lang.id)" class="btn-icon btn-danger" :title="t('languages.remove')">✕</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>{{ t('languages.name') }}</label>
+              <input v-model="lang.name" type="text" :placeholder="t('languages.namePlaceholder')" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('languages.level') }}</label>
+              <select v-model.number="lang.level" class="form-select">
+                <option :value="1">1 – {{ t('languages.level1') }}</option>
+                <option :value="2">2 – {{ t('languages.level2') }}</option>
+                <option :value="3">3 – {{ t('languages.level3') }}</option>
+                <option :value="4">4 – {{ t('languages.level4') }}</option>
+                <option :value="5">5 – {{ t('languages.level5') }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Qualities -->
       <div class="section">
         <h2>{{ t('qualities.title') }}</h2>
@@ -177,13 +230,50 @@
           ></textarea>
         </div>
       </div>
+
+      <!-- Custom Sections -->
+      <div class="section">
+        <div class="section-header">
+          <h2>{{ t('customSections.title') }}</h2>
+          <button @click="addCustomSection" class="btn btn-primary">{{ t('customSections.add') }}</button>
+        </div>
+        <p v-if="cvData.customSections.length === 0" class="empty-message">
+          {{ t('customSections.empty') }}
+        </p>
+        <div
+          v-for="(section, index) in cvData.customSections"
+          :key="section.id"
+          class="block"
+        >
+          <div class="block-header">
+            <h3>{{ t('customSections.section') }} #{{ index + 1 }}</h3>
+            <button @click="removeCustomSection(section.id)" class="btn-icon btn-danger" :title="t('customSections.remove')">✕</button>
+          </div>
+          <div class="form-group">
+            <label>{{ t('customSections.sectionTitle') }}</label>
+            <input v-model="section.title" type="text" :placeholder="t('customSections.sectionTitlePlaceholder')" />
+          </div>
+          <div class="form-group">
+            <label>{{ t('customSections.content') }}</label>
+            <textarea
+              v-model="section.content"
+              :placeholder="t('customSections.contentPlaceholder')"
+              rows="6"
+              class="full-width"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- CV Preview -->
+      <CVPreview />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { generatePDF } from '~/utils/pdfGenerator'
+import { printCV } from '~/utils/printCV'
 
 const { t, locale } = useI18n()
 const { 
@@ -197,6 +287,12 @@ const {
   removeEducation,
   moveEducation,
   sortEducation,
+  addLanguage,
+  removeLanguage,
+  addCustomSection,
+  removeCustomSection,
+  addCustomField,
+  removeCustomField,
   clearData,
   exportToJSON,
   importFromJSON
@@ -227,7 +323,6 @@ const handleFileSelect = async (event: Event) => {
     } catch (error) {
       alert('Error loading file. Please make sure it\'s a valid JSON file.')
     }
-    // Reset input
     if (target) target.value = ''
   }
 }
@@ -243,8 +338,7 @@ const handleExportPDF = () => {
     alert('Please fill in at least Name and Email before exporting.')
     return
   }
-  
-  generatePDF(cvData.value, { locale: locale.value as 'en' | 'fr' })
+  printCV(cvData.value, locale.value)
 }
 </script>
 
@@ -304,7 +398,7 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -347,6 +441,12 @@ h2 {
 
 .form-group {
   margin-bottom: 15px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
 }
 
 textarea.full-width {
@@ -412,6 +512,29 @@ textarea.full-width:focus {
   font-style: italic;
 }
 
+/* ── Block (reusable for language, custom section, etc.) ── */
+.block {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 15px;
+}
+
+.block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.block-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+/* ── Buttons ── */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -460,6 +583,45 @@ textarea.full-width:focus {
   font-size: 13px;
 }
 
+.btn-icon {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.btn-icon.btn-danger:hover {
+  background: #e74c3c;
+  border-color: #e74c3c;
+}
+
+/* ── Form select ── */
+.form-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
 @media (max-width: 768px) {
   .header h1 {
     font-size: 1.5rem;
@@ -472,6 +634,9 @@ textarea.full-width:focus {
   .btn {
     width: 100%;
   }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
-
