@@ -176,16 +176,22 @@
           <div class="form-row">
             <div class="form-group">
               <label>{{ t('languages.name') }}</label>
-              <input v-model="lang.name" type="text" :placeholder="t('languages.namePlaceholder')" />
+              <DropdownAutocomplete
+                :model-value="lang.name"
+                :options="languageOptions"
+                :placeholder="t('languages.namePlaceholder')"
+                @update:model-value="lang.name = $event"
+              />
             </div>
             <div class="form-group">
               <label>{{ t('languages.level') }}</label>
-              <select v-model.number="lang.level" class="form-select">
-                <option :value="1">1 – {{ t('languages.level1') }}</option>
-                <option :value="2">2 – {{ t('languages.level2') }}</option>
-                <option :value="3">3 – {{ t('languages.level3') }}</option>
-                <option :value="4">4 – {{ t('languages.level4') }}</option>
-                <option :value="5">5 – {{ t('languages.level5') }}</option>
+              <select v-model="lang.level" class="form-select">
+                <option value="A1">A1 – {{ t('languages.levelA1') }}</option>
+                <option value="A2">A2 – {{ t('languages.levelA2') }}</option>
+                <option value="B1">B1 – {{ t('languages.levelB1') }}</option>
+                <option value="B2">B2 – {{ t('languages.levelB2') }}</option>
+                <option value="C1">C1 – {{ t('languages.levelC1') }}</option>
+                <option value="C2">C2 – {{ t('languages.levelC2') }}</option>
               </select>
             </div>
           </div>
@@ -194,14 +200,48 @@
 
       <!-- Qualities -->
       <div class="section">
-        <h2>{{ t('qualities.title') }}</h2>
-        <div class="form-group">
-          <textarea 
-            v-model="cvData.qualities" 
-            :placeholder="t('qualities.placeholder')"
-            rows="6"
-            class="full-width"
-          ></textarea>
+        <div class="section-header">
+          <h2>{{ t('qualities.title') }}</h2>
+          <label class="toggle-label">
+            <input type="checkbox" v-model="cvData.qualitiesMode" true-value="polygon" false-value="markdown" />
+            <span>{{ t('qualities.polygonMode') }}</span>
+          </label>
+        </div>
+        <div v-if="cvData.qualitiesMode === 'markdown'">
+          <div class="form-group">
+            <textarea 
+              v-model="cvData.qualities" 
+              :placeholder="t('qualities.placeholder')"
+              rows="6"
+              class="full-width"
+            ></textarea>
+          </div>
+        </div>
+        <div v-else>
+          <div class="form-group">
+            <button @click="addQualityAttribute" class="btn btn-primary btn-small">{{ t('qualities.addAttribute') }}</button>
+          </div>
+          <div
+            v-for="(attr, idx) in cvData.qualityAttributes"
+            :key="attr.id"
+            class="block"
+          >
+            <div class="block-header">
+              <h3>{{ t('qualities.attribute') }} #{{ idx + 1 }}</h3>
+              <button @click="removeQualityAttribute(attr.id)" class="btn-icon btn-danger">✕</button>
+            </div>
+            <div class="form-group">
+              <label>{{ t('qualities.attributeName') }}</label>
+              <input v-model="attr.name" type="text" :placeholder="t('qualities.attributeNamePlaceholder')" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('qualities.attributeScore') }}: {{ attr.score }}</label>
+              <input v-model.number="attr.score" type="range" min="1" max="5" step="1" class="slider" />
+            </div>
+          </div>
+          <p v-if="cvData.qualityAttributes.length === 0" class="empty-message">
+            {{ t('qualities.emptyAttributes') }}
+          </p>
         </div>
       </div>
 
@@ -265,6 +305,64 @@
         </div>
       </div>
 
+      <!-- QR Code Settings -->
+      <div class="section">
+        <div class="section-header">
+          <h2>{{ t('qrCode.title') }}</h2>
+          <label class="toggle-label">
+            <input type="checkbox" v-model="cvData.qrCode.enabled" />
+            <span>{{ t('qrCode.enable') }}</span>
+          </label>
+        </div>
+        <div v-if="cvData.qrCode.enabled">
+          <div class="form-group">
+            <label>{{ t('qrCode.caption') }}</label>
+            <input v-model="cvData.qrCode.caption" type="text" :placeholder="t('qrCode.captionPlaceholder')" />
+          </div>
+          <div class="form-group">
+            <label>{{ t('qrCode.decoration') }}</label>
+            <div class="photo-upload-btn-wrapper">
+              <input
+                ref="qrDecorationInput"
+                type="file"
+                accept="image/*"
+                style="display: none"
+                @change="handleQRDecorationUpload"
+              />
+              <button @click="triggerQRDecorationUpload" class="btn btn-secondary btn-small">
+                {{ cvData.qrCode.decoration ? t('qrCode.changeDecoration') : t('qrCode.uploadDecoration') }}
+              </button>
+              <button v-if="cvData.qrCode.decoration" @click="cvData.qrCode.decoration = ''" class="btn btn-danger btn-small">
+                {{ t('qrCode.removeDecoration') }}
+              </button>
+            </div>
+            <img v-if="cvData.qrCode.decoration" :src="cvData.qrCode.decoration" class="decoration-preview" alt="QR decoration" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Settings -->
+      <div class="section">
+        <div class="section-header">
+          <h2>{{ t('footer.title') }}</h2>
+          <label class="toggle-label">
+            <input type="checkbox" v-model="cvData.footer.enabled" />
+            <span>{{ t('footer.enable') }}</span>
+          </label>
+        </div>
+        <div v-if="cvData.footer.enabled">
+          <div class="form-group">
+            <label>{{ t('footer.text') }}</label>
+            <textarea
+              v-model="cvData.footer.text"
+              :placeholder="t('footer.placeholder')"
+              rows="3"
+              class="full-width"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
       <!-- CV Preview -->
       <CVPreview />
     </main>
@@ -274,6 +372,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { printCV } from '~/utils/printCV'
+import { useLanguages } from '~/data/languages'
 
 const { t, locale } = useI18n()
 const { 
@@ -289,6 +388,8 @@ const {
   sortEducation,
   addLanguage,
   removeLanguage,
+  addQualityAttribute,
+  removeQualityAttribute,
   addCustomSection,
   removeCustomSection,
   addCustomField,
@@ -299,6 +400,9 @@ const {
 } = useCVData()
 
 const fileInput = ref<HTMLInputElement | null>(null)
+const qrDecorationInput = ref<HTMLInputElement | null>(null)
+
+const languageOptions = computed(() => useLanguages(locale.value))
 
 // Load data from localStorage on mount
 onMounted(() => {
@@ -339,6 +443,23 @@ const handleExportPDF = () => {
     return
   }
   printCV(cvData.value, locale.value)
+}
+
+const triggerQRDecorationUpload = () => {
+  qrDecorationInput.value?.click()
+}
+
+const handleQRDecorationUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      cvData.value.qrCode.decoration = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+    if (target) target.value = ''
+  }
 }
 </script>
 
@@ -620,6 +741,61 @@ textarea.full-width:focus {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+/* ── Toggle label ── */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #2c3e50;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* ── Range slider ── */
+.slider {
+  width: 100%;
+  height: 8px;
+  appearance: none;
+  background: #e2e8f0;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3498db;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* ── QR decoration preview ── */
+.decoration-preview {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.photo-upload-btn-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 @media (max-width: 768px) {

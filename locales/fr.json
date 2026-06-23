@@ -31,7 +31,7 @@
     "age": "Âge",
     "agePlaceholder": "30",
     "nationality": "Nationalité",
-    "nationalityPlaceholder": "Votre nationalité"
+    "nationalityPlaceholder": "Recherchez ou tapez votre nationalité"
   },
   "customFields": {
     "title": "Champs Personnalisés d'En-tête",
@@ -85,19 +85,27 @@
     "add": "Ajouter une langue",
     "language": "Langue",
     "name": "Langue",
-    "namePlaceholder": "ex : Anglais, Français, Espagnol",
-    "level": "Niveau de Compétence",
-    "level1": "Élémentaire",
-    "level2": "Limité",
-    "level3": "Professionnel",
-    "level4": "Professionnel Supérieur",
-    "level5": "Natif / Bilingue",
+    "namePlaceholder": "Recherchez ou tapez une langue",
+    "level": "Niveau CECRL",
+    "levelA1": "Débutant (A1)",
+    "levelA2": "Élémentaire (A2)",
+    "levelB1": "Intermédiaire (B1)",
+    "levelB2": "Intermédiaire Supérieur (B2)",
+    "levelC1": "Avancé (C1)",
+    "levelC2": "Maîtrise (C2)",
     "remove": "Supprimer",
     "empty": "Aucune langue ajoutée."
   },
   "qualities": {
     "title": "Qualités",
-    "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)\nex :\n- Créativité\n- Autonomie\n- Gestion des priorités\n- Sens des responsabilités"
+    "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)\nex :\n- Créativité\n- Autonomie\n- Gestion des priorités\n- Sens des responsabilités",
+    "polygonMode": "Polygone de Forces",
+    "addAttribute": "Ajouter un attribut",
+    "attribute": "Attribut",
+    "attributeName": "Nom de l'attribut",
+    "attributeNamePlaceholder": "ex : Créativité",
+    "attributeScore": "Force",
+    "emptyAttributes": "Aucun attribut ajouté. Cliquez sur 'Ajouter un attribut' pour commencer."
   },
   "skills": {
     "title": "Compétences",
@@ -117,6 +125,22 @@
     "contentPlaceholder": "Rédigez le contenu de cette section en Markdown...",
     "remove": "Supprimer",
     "empty": "Aucune section personnalisée ajoutée."
+  },
+  "qrCode": {
+    "title": "Code QR",
+    "enable": "Afficher le Code QR",
+    "caption": "Légende",
+    "captionPlaceholder": "Scannez pour en savoir plus sur mon site web",
+    "decoration": "Image de décoration centrale",
+    "uploadDecoration": "Télécharger une décoration",
+    "changeDecoration": "Changer la décoration",
+    "removeDecoration": "Supprimer"
+  },
+  "footer": {
+    "title": "Pied de page de crédit",
+    "enable": "Afficher le pied de page",
+    "text": "Texte du pied de page",
+    "placeholder": "Réalisé avec cVerse. cVerse est un logiciel libre et open source. Essayez-le vous-même sur https://cv.ronzz.org/"
   },
   "preview": {
     "title": "Aperçu du CV & Export",

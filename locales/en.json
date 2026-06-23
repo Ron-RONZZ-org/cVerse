@@ -31,7 +31,7 @@
     "age": "Age",
     "agePlaceholder": "30",
     "nationality": "Nationality",
-    "nationalityPlaceholder": "Your nationality"
+    "nationalityPlaceholder": "Search or type your nationality"
   },
   "customFields": {
     "title": "Custom Header Fields",
@@ -85,19 +85,27 @@
     "add": "Add Language",
     "language": "Language",
     "name": "Language",
-    "namePlaceholder": "e.g., English, French, Spanish",
-    "level": "Proficiency Level",
-    "level1": "Elementary",
-    "level2": "Limited Working",
-    "level3": "Professional Working",
-    "level4": "Full Professional",
-    "level5": "Native / Bilingual",
+    "namePlaceholder": "Search or type a language",
+    "level": "CEFR Level",
+    "levelA1": "Beginner (A1)",
+    "levelA2": "Elementary (A2)",
+    "levelB1": "Intermediate (B1)",
+    "levelB2": "Upper Intermediate (B2)",
+    "levelC1": "Advanced (C1)",
+    "levelC2": "Mastery (C2)",
     "remove": "Remove",
     "empty": "No languages added yet."
   },
   "qualities": {
     "title": "Qualities",
-    "placeholder": "List your key qualities and soft skills (Markdown supported)\ne.g.:\n- Creativity\n- Autonomy\n- Priority management\n- Sense of responsibility"
+    "placeholder": "List your key qualities and soft skills (Markdown supported)\ne.g.:\n- Creativity\n- Autonomy\n- Priority management\n- Sense of responsibility",
+    "polygonMode": "Strength Polygon",
+    "addAttribute": "Add Attribute",
+    "attribute": "Attribute",
+    "attributeName": "Attribute Name",
+    "attributeNamePlaceholder": "e.g., Creativity",
+    "attributeScore": "Strength",
+    "emptyAttributes": "No attributes added yet. Click 'Add Attribute' to start."
   },
   "skills": {
     "title": "Skills",
@@ -117,6 +125,22 @@
     "contentPlaceholder": "Write the content for this section using Markdown...",
     "remove": "Remove",
     "empty": "No custom sections added yet."
+  },
+  "qrCode": {
+    "title": "QR Code",
+    "enable": "Show QR Code",
+    "caption": "Caption",
+    "captionPlaceholder": "Scan to learn more about me on my website",
+    "decoration": "Center Decoration Image",
+    "uploadDecoration": "Upload Decoration",
+    "changeDecoration": "Change Decoration",
+    "removeDecoration": "Remove"
+  },
+  "footer": {
+    "title": "Credit Footer",
+    "enable": "Show Credit Footer",
+    "text": "Footer Text",
+    "placeholder": "Made with cVerse. cVerse is free and open source software. Try it yourself at https://cv.ronzz.org/"
   },
   "preview": {
     "title": "CV Preview & Export",

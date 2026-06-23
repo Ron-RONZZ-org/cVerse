@@ -1,12 +1,42 @@
 import type { CVData } from '~/types/cv'
 import { renderCV } from './cvTemplate'
+import QRCode from 'qrcode'
 
 /**
  * Opens the CV in a hidden iframe and triggers the browser's print dialog.
  * The user can then choose "Save as PDF" to export a professional PDF.
  */
-export function printCV(data: CVData, locale: string): void {
-  const html = renderCV(data, locale)
+export async function printCV(data: CVData, locale: string): Promise<void> {
+  let html = renderCV(data, locale)
+
+  // Inject QR code if enabled and website is set
+  if (data.qrCode.enabled && data.personal.website) {
+    try {
+      const qrSvg = await QRCode.toString(data.personal.website, {
+        type: 'svg',
+        margin: 2,
+        color: {
+          dark: '#1e293b',
+          light: '#ffffff'
+        }
+      })
+      // Replace the placeholder QR SVG with the real one
+      // The placeholder has id="qr-svg", the real one from qrcode is a full <svg>
+      // We extract just the <svg>...</svg> part
+      const svgMatch = qrSvg.match(/<svg[\s\S]*?<\/svg>/)
+      if (svgMatch) {
+        // Remove viewBox from generated SVG so our wrapper controls sizing
+        const realSvg = svgMatch[0].replace(/<svg/, '<svg preserveAspectRatio="xMidYMid meet"')
+        html = html.replace(
+          /<svg id="qr-svg"[\s\S]*?<\/svg>/,
+          realSvg
+        )
+      }
+    } catch (e) {
+      console.error('Failed to generate QR code:', e)
+      // Proceed without QR code
+    }
+  }
 
   // Build a name for the document (browsers often use <title> as the suggested filename)
   const safeName = data.personal.name

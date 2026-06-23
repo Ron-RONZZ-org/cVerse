@@ -1,6 +1,15 @@
-import type { CVData, PersonalInfo, ExperienceBlock, EducationBlock, LanguageSkill, CustomSection, CustomField } from '~/types/cv'
+import type { CVData, PersonalInfo, ExperienceBlock, EducationBlock, LanguageSkill, CustomSection, CustomField, CEFRLevel, QualityAttribute } from '~/types/cv'
 
 const STORAGE_KEY = 'cv-data'
+
+// CEFR migration map: old number-based level → CEFR string
+const MIGRATE_CEFR: Record<number, CEFRLevel> = {
+  1: 'A1',
+  2: 'A2',
+  3: 'B1',
+  4: 'C1',
+  5: 'C2'
+}
 
 const emptyCV = (): CVData => ({
   personal: {
@@ -22,7 +31,18 @@ const emptyCV = (): CVData => ({
   qualities: '',
   skills: '',
   interests: '',
-  accentColor: '#2563eb'
+  accentColor: '#2563eb',
+  qualitiesMode: 'markdown',
+  qualityAttributes: [],
+  qrCode: {
+    enabled: false,
+    caption: '',
+    decoration: ''
+  },
+  footer: {
+    enabled: false,
+    text: ''
+  }
 })
 
 export const useCVData = () => {
@@ -44,6 +64,19 @@ export const useCVData = () => {
           if (!loadedData.qualities) loadedData.qualities = ''
           if (!loadedData.skills) loadedData.skills = ''
           if (!loadedData.interests) loadedData.interests = ''
+          // Migrate language levels from number to CEFR strings
+          if (loadedData.languages) {
+            for (const lang of loadedData.languages) {
+              if (typeof lang.level === 'number') {
+                lang.level = MIGRATE_CEFR[lang.level] || 'B1'
+              }
+            }
+          }
+          // New fields from the feature expansion
+          if (!loadedData.qualitiesMode) loadedData.qualitiesMode = 'markdown'
+          if (!loadedData.qualityAttributes) loadedData.qualityAttributes = []
+          if (!loadedData.qrCode) loadedData.qrCode = { enabled: false, caption: '', decoration: '' }
+          if (!loadedData.footer) loadedData.footer = { enabled: false, text: '' }
           cvData.value = loadedData
         } catch (e) {
           console.error('Failed to parse stored CV data:', e)
@@ -119,12 +152,25 @@ export const useCVData = () => {
     cvData.value.languages.push({
       id: crypto.randomUUID(),
       name: '',
-      level: 3
+      level: 'B1'
     })
   }
 
   const removeLanguage = (id: string) => {
     cvData.value.languages = cvData.value.languages.filter(l => l.id !== id)
+  }
+
+  // --- Quality Attributes (polygon mode) ---
+  const addQualityAttribute = () => {
+    cvData.value.qualityAttributes.push({
+      id: crypto.randomUUID(),
+      name: '',
+      score: 3
+    })
+  }
+
+  const removeQualityAttribute = (id: string) => {
+    cvData.value.qualityAttributes = cvData.value.qualityAttributes.filter(q => q.id !== id)
   }
 
   // --- Custom Sections ---
@@ -195,6 +241,14 @@ export const useCVData = () => {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string)
+          // Migrate levels on import too
+          if (data.languages) {
+            for (const lang of data.languages) {
+              if (typeof lang.level === 'number') {
+                lang.level = MIGRATE_CEFR[lang.level] || 'B1'
+              }
+            }
+          }
           cvData.value = data
           resolve()
         } catch (error) {
@@ -213,6 +267,7 @@ export const useCVData = () => {
     addExperience, removeExperience, moveExperience, sortExperience,
     addEducation, removeEducation, moveEducation, sortEducation,
     addLanguage, removeLanguage,
+    addQualityAttribute, removeQualityAttribute,
     addCustomSection, removeCustomSection,
     addCustomField, removeCustomField,
     clearData,

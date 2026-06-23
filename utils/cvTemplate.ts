@@ -1,4 +1,4 @@
-import type { CVData } from '~/types/cv'
+import type { CVData, CEFRLevel } from '~/types/cv'
 
 // ─── Inline markdown to HTML ────────────────────────────────────────
 
@@ -60,23 +60,130 @@ function mdToHtml(md: string): string {
   return out.join('\n')
 }
 
-// ─── Language level bar ─────────────────────────────────────────────
+// ─── Language level bar (CEFR) ──────────────────────────────────────
 
-const LEVEL_LABELS: Record<number, string> = {
-  1: 'Elementary',
-  2: 'Limited',
-  3: 'Professional',
-  4: 'Full Professional',
-  5: 'Native / Bilingual'
+const CEFR_LABELS: Record<CEFRLevel, string> = {
+  A1: 'A1 – Elementary',
+  A2: 'A2 – Pre-Intermediate',
+  B1: 'B1 – Intermediate',
+  B2: 'B2 – Upper Intermediate',
+  C1: 'C1 – Advanced',
+  C2: 'C2 – Mastery'
 }
 
-function languageBar(level: number, accent: string): string {
-  const pct = (level / 5) * 100
+const CEFR_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+
+function languageBar(level: CEFRLevel, accent: string): string {
+  const idx = CEFR_ORDER.indexOf(level)
+  const pct = ((idx + 1) / CEFR_ORDER.length) * 100
   return `
     <div class="lang-bar-bg">
       <div class="lang-bar-fill" style="width:${pct}%;background:${accent}"></div>
     </div>
-    <span class="lang-level">${LEVEL_LABELS[level] || level}</span>`
+    <span class="lang-level">${CEFR_LABELS[level] || level}</span>`
+}
+
+// ─── Strength polygon (SVG) ─────────────────────────────────────────
+
+function renderStrengthPolygon(attributes: { name: string; score: number }[], accent: string): string {
+  if (attributes.length < 3) {
+    // Fallback to list if fewer than 3 attributes
+    return attributes.map(a =>
+      `<div class="polygon-fallback-row">
+        <span class="polygon-fallback-name">${escapeHtml(a.name)}</span>
+        <div class="polygon-fallback-bar-bg">
+          <div class="polygon-fallback-bar-fill" style="width:${(a.score / 5) * 100}%;background:${accent}"></div>
+        </div>
+        <span class="polygon-fallback-score">${a.score}/5</span>
+      </div>`
+    ).join('\n')
+  }
+
+  const n = attributes.length
+  const cx = 150
+  const cy = 150
+  const radius = 120
+  const labelR = 140
+  const angleStep = (2 * Math.PI) / n
+  const startAngle = -Math.PI / 2 // start at top
+
+  // Build polygon points
+  const points = attributes.map((a, i) => {
+    const angle = startAngle + i * angleStep
+    const r = (a.score / 5) * radius
+    const x = cx + r * Math.cos(angle)
+    const y = cy + r * Math.sin(angle)
+    return `${x},${y}`
+  }).join(' ')
+
+  // Build background grid (concentric pentagons)
+  const gridLevels = [1, 2, 3, 4, 5]
+  const gridPolygons = gridLevels.map(lvl => {
+    const pts = attributes.map((_, i) => {
+      const angle = startAngle + i * angleStep
+      const r = (lvl / 5) * radius
+      const x = cx + r * Math.cos(angle)
+      const y = cy + r * Math.sin(angle)
+      return `${x},${y}`
+    }).join(' ')
+    return pts
+  })
+
+  // Labels
+  const labels = attributes.map((a, i) => {
+    const angle = startAngle + i * angleStep
+    const x = cx + labelR * Math.cos(angle)
+    const y = cy + labelR * Math.sin(angle)
+    const anchor = angle > Math.PI / 2 && angle < (3 * Math.PI) / 2 ? 'end' : angle === -Math.PI / 2 ? 'middle' : 'start'
+    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-size="9" fill="#334155">${escapeHtml(a.name)}</text>`
+  }).join('\n')
+
+  return `
+  <div class="polygon-container">
+    <svg viewBox="0 0 300 300" class="strength-polygon" xmlns="http://www.w3.org/2000/svg">
+      <!-- Grid -->
+      ${gridPolygons.map(pts => `<polygon points="${pts}" fill="none" stroke="#e2e8f0" stroke-width="1" />`).join('\n')}
+      <!-- Axes -->
+      ${attributes.map((_, i) => {
+        const angle = startAngle + i * angleStep
+        const x = cx + radius * Math.cos(angle)
+        const y = cy + radius * Math.sin(angle)
+        return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`
+      }).join('\n')}
+      <!-- Data polygon -->
+      <polygon points="${points}" fill="${accent}30" stroke="${accent}" stroke-width="2" />
+      <!-- Data points -->
+      ${attributes.map((a, i) => {
+        const angle = startAngle + i * angleStep
+        const r = (a.score / 5) * radius
+        const x = cx + r * Math.cos(angle)
+        const y = cy + r * Math.sin(angle)
+        return `<circle cx="${x}" cy="${y}" r="4" fill="${accent}" />`
+      }).join('\n')}
+      <!-- Labels -->
+      ${labels}
+    </svg>
+  </div>`
+}
+
+// ─── QR Code (SVG embed) ────────────────────────────────────────────
+
+// Generate a minimal QR-like SVG as a placeholder.
+// In production, this is replaced by the actual qrcode library output.
+function renderQRCode(url: string, decoration: string, caption: string, accent: string): string {
+  // Dynamically import qrcode to generate SVG on the fly
+  // The QR code SVG will be rendered by the printCV utility before printing
+  return `<div class="qr-section" id="qr-section">
+    <div class="qr-code" id="qr-code-container">
+      <!-- QR code will be rendered here by qrcode library -->
+      <svg id="qr-svg" class="qr-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="300" height="300" fill="white" rx="8" />
+        <text x="150" y="150" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#94a3b8">QR: ${escapeHtml(url)}</text>
+      </svg>
+      ${decoration ? `<img src="${decoration}" class="qr-decoration" alt="decoration" />` : ''}
+    </div>
+    ${caption ? `<div class="qr-caption">${escapeHtml(caption)}</div>` : ''}
+  </div>`
 }
 
 // ─── HTML document builder ──────────────────────────────────────────
@@ -159,7 +266,9 @@ export function renderCV(data: CVData, locale: string): string {
   }
 
   // ── Qualities ──
-  if (data.qualities.trim()) {
+  if (data.qualitiesMode === 'polygon' && data.qualityAttributes.length > 0) {
+    sections.push(sectionBlock('Qualities', renderStrengthPolygon(data.qualityAttributes, accent), accent))
+  } else if (data.qualities.trim()) {
     sections.push(sectionBlock('Qualities', mdToHtml(data.qualities), accent))
   }
 
@@ -177,6 +286,27 @@ export function renderCV(data: CVData, locale: string): string {
   for (const cs of data.customSections) {
     if (cs.title.trim() && cs.content.trim()) {
       sections.push(sectionBlock(escapeHtml(cs.title), mdToHtml(cs.content), accent))
+    }
+  }
+
+  // ── QR Code ──
+  let qrSection = ''
+  if (data.qrCode.enabled && data.personal.website) {
+    const caption = data.qrCode.caption || (locale === 'fr'
+      ? 'Scannez pour en savoir plus sur mon site web'
+      : 'Scan to learn more about me on my website')
+    qrSection = renderQRCode(data.personal.website, data.qrCode.decoration, caption, accent)
+  }
+
+  // ── Footer ──
+  let footerText = ''
+  if (data.footer.enabled) {
+    if (data.footer.text) {
+      footerText = escapeHtml(data.footer.text)
+    } else {
+      footerText = locale === 'fr'
+        ? 'Réalisé avec cVerse. cVerse est un logiciel libre et open source. Essayez-le vous-même sur https://cv.ronzz.org/'
+        : 'Made with cVerse. cVerse is free and open source software. Try it yourself at https://cv.ronzz.org/'
     }
   }
 
@@ -385,6 +515,102 @@ export function renderCV(data: CVData, locale: string): string {
     min-width: 28mm;
   }
 
+  /* ── Strength polygon ── */
+  .polygon-container {
+    display: flex;
+    justify-content: center;
+    margin: 2mm 0;
+  }
+
+  .strength-polygon {
+    width: 100%;
+    max-width: 160mm;
+    height: auto;
+  }
+
+  .polygon-fallback-row {
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+    margin-bottom: 2mm;
+  }
+
+  .polygon-fallback-name {
+    font-weight: 500;
+    min-width: 30mm;
+    font-size: 10pt;
+  }
+
+  .polygon-fallback-bar-bg {
+    flex: 1;
+    max-width: 50mm;
+    height: 5px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .polygon-fallback-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+
+  .polygon-fallback-score {
+    font-size: 8.5pt;
+    color: #64748b;
+    min-width: 10mm;
+    text-align: right;
+  }
+
+  /* ── QR Code ── */
+  .qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4mm 0;
+    page-break-inside: avoid;
+  }
+
+  .qr-code {
+    position: relative;
+    width: 50mm;
+    height: 50mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qr-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .qr-decoration {
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    object-fit: contain;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .qr-caption {
+    margin-top: 2mm;
+    font-size: 8pt;
+    color: #64748b;
+    text-align: center;
+  }
+
+  /* ── Footer ── */
+  .cv-footer {
+    text-align: center;
+    padding: 3mm 12mm 5mm 12mm;
+    font-size: 7.5pt;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 4mm;
+  }
+
   /* ── Markdown content ── */
   .entry-body p,
   .section > p {
@@ -470,7 +696,10 @@ export function renderCV(data: CVData, locale: string): string {
 
   <div class="cv-sections">
     ${sections.join('\n')}
+    ${qrSection}
   </div>
+
+  ${footerText ? `<div class="cv-footer">${footerText}</div>` : ''}
 </div>
 </body>
 </html>`

@@ -95,10 +95,11 @@
       
       <div class="form-group">
         <label>{{ t('personal.nationality') }}</label>
-        <input 
-          v-model="cvData.personal.nationality" 
-          type="text" 
+        <DropdownAutocomplete
+          :model-value="cvData.personal.nationality"
+          :options="countryOptions"
           :placeholder="t('personal.nationalityPlaceholder')"
+          @update:model-value="cvData.personal.nationality = $event"
         />
       </div>
     </div>
@@ -115,9 +116,13 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import PhotoCropper from './PhotoCropper.vue'
+import DropdownAutocomplete from './DropdownAutocomplete.vue'
+import { useCountries } from '~/data/countries'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { cvData } = useCVData()
+
+const countryOptions = computed(() => useCountries(locale.value))
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const showCropper = ref(false)
