@@ -27,6 +27,22 @@ function parseQualitiesMarkdown(text: string): QualityAttribute[] {
 
 /** Migrate old CV data that may have `qualities`/`qualitiesMode` to new shape. */
 function migrateOldData(data: Record<string, unknown>): void {
+  // Ensure arrays exist for backward compatibility with old JSON exports
+  if (!data.languages) (data as Record<string, unknown>).languages = []
+  if (!data.customSections) (data as Record<string, unknown>).customSections = []
+  if (!data.qualityAttributes) (data as Record<string, unknown>).qualityAttributes = []
+  if (!data.skills) (data as Record<string, unknown>).skills = ''
+  if (!data.interests) (data as Record<string, unknown>).interests = ''
+  if (!data.accentColor) (data as Record<string, unknown>).accentColor = '#2563eb'
+  if (!data.qrCode) (data as Record<string, unknown>).qrCode = { enabled: false, caption: '', decoration: '' }
+  if (!data.footer) (data as Record<string, unknown>).footer = { enabled: false, text: '' }
+
+  // personal sub-object may be partial
+  const personal = data.personal as Record<string, unknown> | undefined
+  if (personal) {
+    if (!personal.customFields) personal.customFields = []
+  }
+
   // Migrate language levels from number to CEFR strings
   const langs = data.languages as Array<Record<string, unknown>> | undefined
   if (langs) {
@@ -41,17 +57,15 @@ function migrateOldData(data: Record<string, unknown>): void {
   // populate `qualityAttributes` if empty, set `qualitiesShowStrength`
   const oldQualities = data.qualities as string | undefined
   const oldMode = data.qualitiesMode as string | undefined
-  const attrs = data.qualityAttributes as QualityAttribute[] | undefined
 
   delete data.qualities
   delete data.qualitiesMode
 
-  if (!data.qualityAttributes) {
-    data.qualityAttributes = []
-  }
+  // Now data.qualityAttributes is guaranteed to be an array (initialized above)
+  const attrs = data.qualityAttributes as QualityAttribute[]
 
   // If old markdown text exists and no structured attributes yet, parse it
-  if (oldQualities && attrs?.length === 0) {
+  if (oldQualities && attrs.length === 0) {
     const parsed = parseQualitiesMarkdown(oldQualities)
     if (parsed.length > 0) {
       ;(data.qualityAttributes as QualityAttribute[]) = parsed
@@ -60,13 +74,6 @@ function migrateOldData(data: Record<string, unknown>): void {
 
   // Determine showStrength from old mode, default to false
   data.qualitiesShowStrength = oldMode === 'polygon'
-
-  // Ensure new fields exist for backward compatibility
-  if (!data.skills) (data as Record<string, unknown>).skills = ''
-  if (!data.interests) (data as Record<string, unknown>).interests = ''
-  if (!data.accentColor) (data as Record<string, unknown>).accentColor = '#2563eb'
-  if (!data.qrCode) (data as Record<string, unknown>).qrCode = { enabled: false, caption: '', decoration: '' }
-  if (!data.footer) (data as Record<string, unknown>).footer = { enabled: false, text: '' }
 }
 
 const emptyCV = (): CVData => ({
