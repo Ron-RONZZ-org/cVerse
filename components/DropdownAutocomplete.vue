@@ -59,7 +59,7 @@ function onInput(e: Event) {
   const val = (e.target as HTMLInputElement).value
   filterText.value = val
   emit('update:modelValue', val)
-  isOpen = true
+  isOpen.value = true
   highlightIndex.value = -1
 }
 

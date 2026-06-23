@@ -149,7 +149,8 @@
   },
   "preview": {
     "title": "Aperçu du CV & Export",
-    "refresh": "Rafraîchir l'aperçu"
+    "refresh": "Rafraîchir l'aperçu",
+    "autoRefresh": "Auto-raffraîchir"
   },
   "sort": {
     "newest": "Trier : Plus récent d'abord",

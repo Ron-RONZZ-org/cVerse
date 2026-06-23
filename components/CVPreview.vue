@@ -6,12 +6,33 @@
     </div>
     <div v-show="!collapsed" class="preview-body">
       <div class="preview-toolbar">
-        <button @click="handlePrint" class="btn btn-primary">
+        <button @click="handleExportJSON" class="btn btn-secondary btn-sm">
+          {{ t('app.save') }}
+        </button>
+        <button @click="handleImportJSON" class="btn btn-secondary btn-sm">
+          {{ t('app.load') }}
+        </button>
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json"
+          style="display: none"
+          @change="handleFileSelect"
+        />
+        <button @click="handleClear" class="btn btn-danger btn-sm">
+          {{ t('app.clear') }}
+        </button>
+        <button @click="handlePrint" class="btn btn-primary btn-sm">
           {{ t('app.export') }}
         </button>
-        <button @click="refreshPreview" class="btn btn-secondary">
+        <div class="toolbar-spacer"></div>
+        <button @click="refreshPreview" class="btn btn-secondary btn-sm">
           {{ t('preview.refresh') }}
         </button>
+        <label class="toggle-label auto-refresh-label">
+          <input type="checkbox" v-model="autoRefresh" />
+          <span>{{ t('preview.autoRefresh') }}</span>
+        </label>
       </div>
       <div ref="previewContainer" class="preview-container">
         <iframe
@@ -27,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import QRCode from 'qrcode'
 import { renderCV } from '~/utils/cvTemplate'
@@ -35,20 +56,63 @@ import { printCV } from '~/utils/printCV'
 import { useCVData } from '~/composables/useCVData'
 
 const { t, locale } = useI18n()
-const { cvData } = useCVData()
+const { cvData, clearData, exportToJSON, importFromJSON } = useCVData()
 
 const collapsed = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
 const previewContainer = ref<HTMLDivElement | null>(null)
-const renderKey = ref(0)
 const qrReplaced = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
 
+// Auto-refresh toggle (default OFF)
+const autoRefresh = ref(false)
+
+// Snapshot for manual refresh mode
+const renderKey = ref(0)
+const snapshotData = ref(structuredClone(cvData.value))
+const snapshotLocale = ref(locale.value)
+
+// The HTML used in the iframe
 const cvHtml = computed(() => {
-  // Force re-computation when renderKey changes
   void renderKey.value
   qrReplaced.value = false
-  return renderCV(cvData.value, locale.value)
+  if (autoRefresh.value) {
+    // Live mode: recompute on every cvData / locale change
+    return renderCV(cvData.value, locale.value)
+  }
+  // Manual mode: only recompute when renderKey changes (snapshot taken)
+  return renderCV(snapshotData.value, snapshotLocale.value)
 })
+
+// Take initial snapshot on mount
+onMounted(() => {
+  snapshotData.value = structuredClone(cvData.value)
+  snapshotLocale.value = locale.value
+})
+
+// When turning off auto-refresh, capture current live state as snapshot
+watch(autoRefresh, (newVal) => {
+  if (!newVal) {
+    snapshotData.value = structuredClone(cvData.value)
+    snapshotLocale.value = locale.value
+    renderKey.value++
+  }
+})
+
+// In auto-refresh mode, the watch on cvHtml handles QR replacement
+watch(cvHtml, async () => {
+  await nextTick()
+  setTimeout(async () => {
+    await replaceQRPlaceholders()
+  }, 500)
+})
+
+// Manual refresh: capture current data/locale and bump render key
+function refreshPreview() {
+  snapshotData.value = structuredClone(cvData.value)
+  snapshotLocale.value = locale.value
+  renderKey.value++
+}
 
 // After the iframe loads, replace QR placeholders with real QR SVGs
 async function replaceQRPlaceholders() {
@@ -76,31 +140,57 @@ async function replaceQRPlaceholders() {
         placeholder.outerHTML = realSvg
       }
     } catch (e) {
-      console.error(`Failed to generate QR code for preview:`, e)
+      console.error('Failed to generate QR code for preview:', e)
     }
   }
   qrReplaced.value = true
 }
 
-// Watch for iframe content changes (a new srcdoc will reload the iframe)
-watch(cvHtml, async () => {
-  await nextTick()
-  // Wait for iframe to load its new srcdoc
-  setTimeout(async () => {
-    await replaceQRPlaceholders()
-  }, 500)
-})
-
-// Also try replacing when iframe loads
 function onIframeLoad() {
   replaceQRPlaceholders()
 }
 
-const refreshPreview = () => {
-  renderKey.value++
+// ── Export / Import ──
+
+const handleExportJSON = () => {
+  exportToJSON()
+}
+
+const handleImportJSON = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    try {
+      await importFromJSON(file)
+      // Update snapshot so manual mode shows the imported data
+      snapshotData.value = structuredClone(cvData.value)
+      snapshotLocale.value = locale.value
+      renderKey.value++
+    } catch {
+      alert("Error loading file. Please make sure it's a valid JSON file.")
+    }
+    if (target) target.value = ''
+  }
+}
+
+const handleClear = () => {
+  if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+    clearData()
+    snapshotData.value = structuredClone(cvData.value)
+    snapshotLocale.value = locale.value
+    renderKey.value++
+  }
 }
 
 const handlePrint = () => {
+  if (!cvData.value.personal.name || !cvData.value.personal.email) {
+    alert('Please fill in at least Name and Email before exporting.')
+    return
+  }
   printCV(cvData.value, locale.value)
 }
 </script>
@@ -144,8 +234,31 @@ const handlePrint = () => {
 
 .preview-toolbar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.toolbar-spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+.auto-refresh-label {
+  font-size: 13px;
+  color: #475569;
+  user-select: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.auto-refresh-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }
 
 .preview-container {
@@ -164,13 +277,19 @@ const handlePrint = () => {
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 8px 14px;
   border: none;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
 .btn-primary {
@@ -189,5 +308,14 @@ const handlePrint = () => {
 
 .btn-secondary:hover {
   background: #7f8c8d;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
 }
 </style>

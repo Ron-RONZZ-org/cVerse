@@ -114,7 +114,6 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
   const cx = 200
   const cy = 200
   const radius = 130
-  const labelR = 175
   const angleStep = (2 * Math.PI) / n
   const startAngle = -Math.PI / 2 // start at top
 
@@ -140,15 +139,30 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
     return pts
   })
 
-  // Labels – compute text length to adjust position
+  // Labels – placed near vertex positions with small offsets
+  // Strategy: start at vertex, add small radial offset + perpendicular shift,
+  // clamp to viewBox bounds to prevent overflow.
+  const radialOff = 8
+  const perpOff = 14
+  const pad = 6
+
   const labels = attributes.map((a, i) => {
     const angle = startAngle + i * angleStep
-    // Push label outward proportionally to name length (longer names need more room)
-    const nameLen = a.name.length
-    const extraOffset = Math.max(0, (nameLen - 6) * 3)
-    const r = labelR + extraOffset
-    const x = cx + r * Math.cos(angle)
-    const y = cy + r * Math.sin(angle)
+    const dx = Math.cos(angle)
+    const dy = Math.sin(angle)
+
+    // Perpendicular direction (clockwise 90°)
+    const pdx = Math.cos(angle + Math.PI / 2)
+    const pdy = Math.sin(angle + Math.PI / 2)
+
+    // Start at vertex + radial offset + perpendicular shift
+    let x = cx + (radius + radialOff) * dx + perpOff * pdx
+    let y = cy + (radius + radialOff) * dy + perpOff * pdy
+
+    // Clamp to viewBox bounds
+    x = Math.max(pad, Math.min(400 - pad, x))
+    y = Math.max(pad, Math.min(400 - pad, y))
+
     let anchor: string
     const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
     if (normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2) {

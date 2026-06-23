@@ -149,7 +149,8 @@
   },
   "preview": {
     "title": "CV Preview & Export",
-    "refresh": "Refresh Preview"
+    "refresh": "Refresh Preview",
+    "autoRefresh": "Auto-refresh"
   },
   "sort": {
     "newest": "Sort: Newest First",

@@ -12,376 +12,358 @@
       </div>
     </header>
     
-    <main class="container">
-      <div class="toolbar">
-        <button @click="handleExportJSON" class="btn btn-secondary">
-          {{ t('app.save') }}
-        </button>
-        <button @click="handleImportJSON" class="btn btn-secondary">
-          {{ t('app.load') }}
-        </button>
-        <input 
-          ref="fileInput" 
-          type="file" 
-          accept=".json" 
-          style="display: none" 
-          @change="handleFileSelect"
-        />
-        <button @click="handleClear" class="btn btn-danger">
-          {{ t('app.clear') }}
-        </button>
-        <button @click="handleExportPDF" class="btn btn-primary">
-          {{ t('app.export') }}
-        </button>
-      </div>
+    <main class="layout">
+      <div class="form-pane">
+        <PersonalInfoForm />
 
-      <PersonalInfoForm />
+        <!-- Headline -->
+        <div class="section">
+          <h2>{{ t('personal.headline') }}</h2>
+          <div class="form-group">
+            <input 
+              v-model="cvData.personal.headline" 
+              type="text" 
+              :placeholder="t('personal.headlinePlaceholder')"
+              class="headline-input"
+            />
+          </div>
+        </div>
 
-      <!-- Headline -->
-      <div class="section">
-        <h2>{{ t('personal.headline') }}</h2>
-        <div class="form-group">
-          <input 
-            v-model="cvData.personal.headline" 
-            type="text" 
-            :placeholder="t('personal.headlinePlaceholder')"
-            class="headline-input"
+        <!-- Custom Fields -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('customFields.title') }}</h2>
+            <button @click="addCustomField" class="btn btn-primary">{{ t('customFields.add') }}</button>
+          </div>
+          <p v-if="cvData.personal.customFields.length === 0" class="empty-message">
+            {{ t('customFields.empty') }}
+          </p>
+          <div
+            v-for="(field, index) in cvData.personal.customFields"
+            :key="field.id"
+            class="block"
+          >
+            <div class="block-header">
+              <h3>{{ t('customFields.field') }} #{{ index + 1 }}</h3>
+              <button @click="removeCustomField(field.id)" class="btn-icon btn-danger" :title="t('customFields.remove')">✕</button>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>{{ t('customFields.label') }}</label>
+                <input v-model="field.label" type="text" :placeholder="t('customFields.labelPlaceholder')" />
+              </div>
+              <div class="form-group">
+                <label>{{ t('customFields.value') }}</label>
+                <input v-model="field.value" type="text" :placeholder="t('customFields.valuePlaceholder')" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDF Settings -->
+        <div class="section">
+          <h2>{{ t('settings.title') }}</h2>
+          <div class="form-group">
+            <label>{{ t('settings.accentColor') }}</label>
+            <div class="color-picker-wrapper">
+              <input v-model="cvData.accentColor" type="color" class="color-picker" />
+              <span class="color-value">{{ cvData.accentColor }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Experience -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('experience.title') }}</h2>
+            <div class="header-actions">
+              <button @click="sortExperience('newest')" class="btn btn-secondary btn-small">
+                {{ t('sort.newest') }}
+              </button>
+              <button @click="sortExperience('oldest')" class="btn btn-secondary btn-small">
+                {{ t('sort.oldest') }}
+              </button>
+              <button @click="addExperience" class="btn btn-primary">
+                {{ t('experience.add') }}
+              </button>
+            </div>
+          </div>
+          <ExperienceBlock
+            v-for="(exp, index) in cvData.experience"
+            :key="exp.id"
+            :experience="exp"
+            :index="index"
+            :total="cvData.experience.length"
+            @remove="removeExperience(exp.id)"
+            @move-up="moveExperience(index, 'up')"
+            @move-down="moveExperience(index, 'down')"
           />
+          <p v-if="cvData.experience.length === 0" class="empty-message">
+            {{ t('experience.add') }}
+          </p>
         </div>
-      </div>
 
-      <!-- Custom Fields -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('customFields.title') }}</h2>
-          <button @click="addCustomField" class="btn btn-primary">{{ t('customFields.add') }}</button>
-        </div>
-        <p v-if="cvData.personal.customFields.length === 0" class="empty-message">
-          {{ t('customFields.empty') }}
-        </p>
-        <div
-          v-for="(field, index) in cvData.personal.customFields"
-          :key="field.id"
-          class="block"
-        >
-          <div class="block-header">
-            <h3>{{ t('customFields.field') }} #{{ index + 1 }}</h3>
-            <button @click="removeCustomField(field.id)" class="btn-icon btn-danger" :title="t('customFields.remove')">✕</button>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>{{ t('customFields.label') }}</label>
-              <input v-model="field.label" type="text" :placeholder="t('customFields.labelPlaceholder')" />
-            </div>
-            <div class="form-group">
-              <label>{{ t('customFields.value') }}</label>
-              <input v-model="field.value" type="text" :placeholder="t('customFields.valuePlaceholder')" />
+        <!-- Education -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('education.title') }}</h2>
+            <div class="header-actions">
+              <button @click="sortEducation('newest')" class="btn btn-secondary btn-small">
+                {{ t('sort.newest') }}
+              </button>
+              <button @click="sortEducation('oldest')" class="btn btn-secondary btn-small">
+                {{ t('sort.oldest') }}
+              </button>
+              <button @click="addEducation" class="btn btn-primary">
+                {{ t('education.add') }}
+              </button>
             </div>
           </div>
+          <EducationBlock
+            v-for="(edu, index) in cvData.education"
+            :key="edu.id"
+            :education="edu"
+            :index="index"
+            :total="cvData.education.length"
+            @remove="removeEducation(edu.id)"
+            @move-up="moveEducation(index, 'up')"
+            @move-down="moveEducation(index, 'down')"
+          />
+          <p v-if="cvData.education.length === 0" class="empty-message">
+            {{ t('education.add') }}
+          </p>
         </div>
-      </div>
 
-      <!-- PDF Settings -->
-      <div class="section">
-        <h2>{{ t('settings.title') }}</h2>
-        <div class="form-group">
-          <label>{{ t('settings.accentColor') }}</label>
-          <div class="color-picker-wrapper">
-            <input v-model="cvData.accentColor" type="color" class="color-picker" />
-            <span class="color-value">{{ cvData.accentColor }}</span>
+        <!-- Languages -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('languages.title') }}</h2>
+            <button @click="addLanguage" class="btn btn-primary">{{ t('languages.add') }}</button>
           </div>
-        </div>
-      </div>
-
-      <!-- Professional Experience -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('experience.title') }}</h2>
-          <div class="header-actions">
-            <button @click="sortExperience('newest')" class="btn btn-secondary btn-small">
-              {{ t('sort.newest') }}
-            </button>
-            <button @click="sortExperience('oldest')" class="btn btn-secondary btn-small">
-              {{ t('sort.oldest') }}
-            </button>
-            <button @click="addExperience" class="btn btn-primary">
-              {{ t('experience.add') }}
-            </button>
-          </div>
-        </div>
-        <ExperienceBlock
-          v-for="(exp, index) in cvData.experience"
-          :key="exp.id"
-          :experience="exp"
-          :index="index"
-          :total="cvData.experience.length"
-          @remove="removeExperience(exp.id)"
-          @move-up="moveExperience(index, 'up')"
-          @move-down="moveExperience(index, 'down')"
-        />
-        <p v-if="cvData.experience.length === 0" class="empty-message">
-          {{ t('experience.add') }}
-        </p>
-      </div>
-
-      <!-- Education -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('education.title') }}</h2>
-          <div class="header-actions">
-            <button @click="sortEducation('newest')" class="btn btn-secondary btn-small">
-              {{ t('sort.newest') }}
-            </button>
-            <button @click="sortEducation('oldest')" class="btn btn-secondary btn-small">
-              {{ t('sort.oldest') }}
-            </button>
-            <button @click="addEducation" class="btn btn-primary">
-              {{ t('education.add') }}
-            </button>
-          </div>
-        </div>
-        <EducationBlock
-          v-for="(edu, index) in cvData.education"
-          :key="edu.id"
-          :education="edu"
-          :index="index"
-          :total="cvData.education.length"
-          @remove="removeEducation(edu.id)"
-          @move-up="moveEducation(index, 'up')"
-          @move-down="moveEducation(index, 'down')"
-        />
-        <p v-if="cvData.education.length === 0" class="empty-message">
-          {{ t('education.add') }}
-        </p>
-      </div>
-
-      <!-- Languages -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('languages.title') }}</h2>
-          <button @click="addLanguage" class="btn btn-primary">{{ t('languages.add') }}</button>
-        </div>
-        <p v-if="cvData.languages.length === 0" class="empty-message">
-          {{ t('languages.empty') }}
-        </p>
-        <div
-          v-for="(lang, index) in cvData.languages"
-          :key="lang.id"
-          class="block"
-        >
-          <div class="block-header">
-            <h3>{{ t('languages.language') }} #{{ index + 1 }}</h3>
-            <button @click="removeLanguage(lang.id)" class="btn-icon btn-danger" :title="t('languages.remove')">✕</button>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>{{ t('languages.name') }}</label>
-              <DropdownAutocomplete
-                :model-value="lang.name"
-                :options="languageOptions"
-                :placeholder="t('languages.namePlaceholder')"
-                @update:model-value="lang.name = $event"
-              />
+          <p v-if="cvData.languages.length === 0" class="empty-message">
+            {{ t('languages.empty') }}
+          </p>
+          <div
+            v-for="(lang, index) in cvData.languages"
+            :key="lang.id"
+            class="block"
+          >
+            <div class="block-header">
+              <h3>{{ t('languages.language') }} #{{ index + 1 }}</h3>
+              <button @click="removeLanguage(lang.id)" class="btn-icon btn-danger" :title="t('languages.remove')">✕</button>
             </div>
-            <div class="form-group">
-              <label>{{ t('languages.level') }}</label>
-              <select v-model="lang.level" class="form-select">
-                <option value="A1">A1 – {{ t('languages.levelA1') }}</option>
-                <option value="A2">A2 – {{ t('languages.levelA2') }}</option>
-                <option value="B1">B1 – {{ t('languages.levelB1') }}</option>
-                <option value="B2">B2 – {{ t('languages.levelB2') }}</option>
-                <option value="C1">C1 – {{ t('languages.levelC1') }}</option>
-                <option value="C2">C2 – {{ t('languages.levelC2') }}</option>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label>{{ t('languages.name') }}</label>
+                <DropdownAutocomplete
+                  :model-value="lang.name"
+                  :options="languageOptions"
+                  :placeholder="t('languages.namePlaceholder')"
+                  @update:model-value="lang.name = $event"
+                />
+              </div>
+              <div class="form-group">
+                <label>{{ t('languages.level') }}</label>
+                <select v-model="lang.level" class="form-select">
+                  <option value="A1">A1 – {{ t('languages.levelA1') }}</option>
+                  <option value="A2">A2 – {{ t('languages.levelA2') }}</option>
+                  <option value="B1">B1 – {{ t('languages.levelB1') }}</option>
+                  <option value="B2">B2 – {{ t('languages.levelB2') }}</option>
+                  <option value="C1">C1 – {{ t('languages.levelC1') }}</option>
+                  <option value="C2">C2 – {{ t('languages.levelC2') }}</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Qualities -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('qualities.title') }}</h2>
-          <label class="toggle-label">
-            <input type="checkbox" v-model="cvData.qualitiesShowStrength" />
-            <span>{{ t('qualities.showStrength') }}</span>
-          </label>
-        </div>
-        <div class="form-group">
-          <button @click="addQualityAttribute" class="btn btn-primary btn-small">{{ t('qualities.addAttribute') }}</button>
-        </div>
-        <div
-          v-for="(attr, idx) in cvData.qualityAttributes"
-          :key="attr.id"
-          class="block"
-        >
-          <div class="block-header">
-            <h3>{{ t('qualities.attribute') }} #{{ idx + 1 }}</h3>
-            <button @click="removeQualityAttribute(attr.id)" class="btn-icon btn-danger">✕</button>
+        <!-- Qualities -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('qualities.title') }}</h2>
+            <label class="toggle-label">
+              <input type="checkbox" v-model="cvData.qualitiesShowStrength" />
+              <span>{{ t('qualities.showStrength') }}</span>
+            </label>
           </div>
           <div class="form-group">
-            <label>{{ t('qualities.attributeName') }}</label>
-            <input v-model="attr.name" type="text" :placeholder="t('qualities.attributeNamePlaceholder')" />
+            <button @click="addQualityAttribute" class="btn btn-primary btn-small">{{ t('qualities.addAttribute') }}</button>
           </div>
-          <div v-if="cvData.qualitiesShowStrength" class="form-group">
-            <label>{{ t('qualities.attributeScore') }}: {{ attr.score }}</label>
-            <input v-model.number="attr.score" type="range" min="1" max="5" step="1" class="slider" />
+          <div
+            v-for="(attr, idx) in cvData.qualityAttributes"
+            :key="attr.id"
+            class="block"
+          >
+            <div class="block-header">
+              <h3>{{ t('qualities.attribute') }} #{{ idx + 1 }}</h3>
+              <button @click="removeQualityAttribute(attr.id)" class="btn-icon btn-danger">✕</button>
+            </div>
+            <div class="form-group">
+              <label>{{ t('qualities.attributeName') }}</label>
+              <input v-model="attr.name" type="text" :placeholder="t('qualities.attributeNamePlaceholder')" />
+            </div>
+            <div v-if="cvData.qualitiesShowStrength" class="form-group">
+              <label>{{ t('qualities.attributeScore') }}: {{ attr.score }}</label>
+              <input v-model.number="attr.score" type="range" min="1" max="5" step="1" class="slider" />
+            </div>
           </div>
+          <p v-if="cvData.qualityAttributes.length === 0" class="empty-message">
+            {{ t('qualities.emptyAttributes') }}
+          </p>
         </div>
-        <p v-if="cvData.qualityAttributes.length === 0" class="empty-message">
-          {{ t('qualities.emptyAttributes') }}
-        </p>
-      </div>
 
-      <!-- Skills -->
-      <div class="section">
-        <h2>{{ t('skills.title') }}</h2>
-        <div class="form-group">
-          <textarea 
-            v-model="cvData.skills" 
-            :placeholder="t('skills.placeholder')"
-            rows="6"
-            class="full-width"
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Interests -->
-      <div class="section">
-        <h2>{{ t('interests.title') }}</h2>
-        <div class="form-group">
-          <textarea 
-            v-model="cvData.interests" 
-            :placeholder="t('interests.placeholder')"
-            rows="6"
-            class="full-width"
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Custom Sections -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('customSections.title') }}</h2>
-          <button @click="addCustomSection" class="btn btn-primary">{{ t('customSections.add') }}</button>
-        </div>
-        <p v-if="cvData.customSections.length === 0" class="empty-message">
-          {{ t('customSections.empty') }}
-        </p>
-        <div
-          v-for="(section, index) in cvData.customSections"
-          :key="section.id"
-          class="block"
-        >
-          <div class="block-header">
-            <h3>{{ t('customSections.section') }} #{{ index + 1 }}</h3>
-            <button @click="removeCustomSection(section.id)" class="btn-icon btn-danger" :title="t('customSections.remove')">✕</button>
-          </div>
+        <!-- Skills -->
+        <div class="section">
+          <h2>{{ t('skills.title') }}</h2>
           <div class="form-group">
-            <label>{{ t('customSections.sectionTitle') }}</label>
-            <input v-model="section.title" type="text" :placeholder="t('customSections.sectionTitlePlaceholder')" />
-          </div>
-          <div class="form-group">
-            <label>{{ t('customSections.content') }}</label>
-            <textarea
-              v-model="section.content"
-              :placeholder="t('customSections.contentPlaceholder')"
+            <textarea 
+              v-model="cvData.skills" 
+              :placeholder="t('skills.placeholder')"
               rows="6"
               class="full-width"
             ></textarea>
           </div>
         </div>
-      </div>
 
-      <!-- QR Code Settings -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('qrCode.title') }}</h2>
-          <label class="toggle-label">
-            <input type="checkbox" v-model="cvData.qrCode.enabled" />
-            <span>{{ t('qrCode.enable') }}</span>
-          </label>
-        </div>
-        <div v-if="cvData.qrCode.enabled">
+        <!-- Interests -->
+        <div class="section">
+          <h2>{{ t('interests.title') }}</h2>
           <div class="form-group">
-            <button @click="addQRCode(cvData.personal.website || '')" class="btn btn-primary btn-small">
-              {{ t('qrCode.add') }}
-            </button>
-          </div>
-          <p v-if="cvData.qrCode.items.length === 0" class="empty-message">
-            {{ t('qrCode.empty') }}
-          </p>
-          <div
-            v-for="(q, idx) in cvData.qrCode.items"
-            :key="q.id"
-            class="block"
-          >
-            <div class="block-header">
-              <h3>{{ t('qrCode.qrCode') }} #{{ idx + 1 }}</h3>
-              <button @click="removeQRCode(q.id)" class="btn-icon btn-danger" :title="t('qrCode.remove')">✕</button>
-            </div>
-            <div class="form-group">
-              <label>{{ t('qrCode.url') }}</label>
-              <input v-model="q.url" type="url" :placeholder="t('qrCode.urlPlaceholder')" />
-            </div>
-            <div class="form-group">
-              <label>{{ t('qrCode.caption') }}</label>
-              <input v-model="q.caption" type="text" :placeholder="t('qrCode.captionPlaceholder')" />
-            </div>
-            <div class="form-group">
-              <label>{{ t('qrCode.decoration') }}</label>
-              <div class="photo-upload-btn-wrapper">
-                <input
-                  :id="'qr-dec-input-' + q.id"
-                  type="file"
-                  accept="image/*"
-                  style="display: none"
-                  @change="(e) => handleQRDecorationUpload(e, q)"
-                />
-                <button @click="triggerQRFileInput(q.id)" class="btn btn-secondary btn-small">
-                  {{ q.decoration ? t('qrCode.changeDecoration') : t('qrCode.uploadDecoration') }}
-                </button>
-                <button v-if="q.decoration" @click="q.decoration = ''" class="btn btn-danger btn-small">
-                  {{ t('qrCode.removeDecoration') }}
-                </button>
-              </div>
-              <img v-if="q.decoration" :src="q.decoration" class="decoration-preview" alt="QR decoration" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer Settings -->
-      <div class="section">
-        <div class="section-header">
-          <h2>{{ t('footer.title') }}</h2>
-          <label class="toggle-label">
-            <input type="checkbox" v-model="cvData.footer.enabled" />
-            <span>{{ t('footer.enable') }}</span>
-          </label>
-        </div>
-        <div v-if="cvData.footer.enabled">
-          <div class="form-group">
-            <label>{{ t('footer.text') }}</label>
-            <textarea
-              v-model="cvData.footer.text"
-              :placeholder="t('footer.placeholder')"
-              rows="3"
+            <textarea 
+              v-model="cvData.interests" 
+              :placeholder="t('interests.placeholder')"
+              rows="6"
               class="full-width"
             ></textarea>
           </div>
         </div>
+
+        <!-- Custom Sections -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('customSections.title') }}</h2>
+            <button @click="addCustomSection" class="btn btn-primary">{{ t('customSections.add') }}</button>
+          </div>
+          <p v-if="cvData.customSections.length === 0" class="empty-message">
+            {{ t('customSections.empty') }}
+          </p>
+          <div
+            v-for="(section, index) in cvData.customSections"
+            :key="section.id"
+            class="block"
+          >
+            <div class="block-header">
+              <h3>{{ t('customSections.section') }} #{{ index + 1 }}</h3>
+              <button @click="removeCustomSection(section.id)" class="btn-icon btn-danger" :title="t('customSections.remove')">✕</button>
+            </div>
+            <div class="form-group">
+              <label>{{ t('customSections.sectionTitle') }}</label>
+              <input v-model="section.title" type="text" :placeholder="t('customSections.sectionTitlePlaceholder')" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('customSections.content') }}</label>
+              <textarea
+                v-model="section.content"
+                :placeholder="t('customSections.contentPlaceholder')"
+                rows="6"
+                class="full-width"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Settings -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('qrCode.title') }}</h2>
+            <label class="toggle-label">
+              <input type="checkbox" v-model="cvData.qrCode.enabled" />
+              <span>{{ t('qrCode.enable') }}</span>
+            </label>
+          </div>
+          <div v-if="cvData.qrCode.enabled">
+            <div class="form-group">
+              <button @click="addQRCode(cvData.personal.website || '')" class="btn btn-primary btn-small">
+                {{ t('qrCode.add') }}
+              </button>
+            </div>
+            <p v-if="cvData.qrCode.items.length === 0" class="empty-message">
+              {{ t('qrCode.empty') }}
+            </p>
+            <div
+              v-for="(q, idx) in cvData.qrCode.items"
+              :key="q.id"
+              class="block"
+            >
+              <div class="block-header">
+                <h3>{{ t('qrCode.qrCode') }} #{{ idx + 1 }}</h3>
+                <button @click="removeQRCode(q.id)" class="btn-icon btn-danger" :title="t('qrCode.remove')">✕</button>
+              </div>
+              <div class="form-group">
+                <label>{{ t('qrCode.url') }}</label>
+                <input v-model="q.url" type="url" :placeholder="t('qrCode.urlPlaceholder')" />
+              </div>
+              <div class="form-group">
+                <label>{{ t('qrCode.caption') }}</label>
+                <input v-model="q.caption" type="text" :placeholder="t('qrCode.captionPlaceholder')" />
+              </div>
+              <div class="form-group">
+                <label>{{ t('qrCode.decoration') }}</label>
+                <div class="photo-upload-btn-wrapper">
+                  <input
+                    :id="'qr-dec-input-' + q.id"
+                    type="file"
+                    accept="image/*"
+                    style="display: none"
+                    @change="(e) => handleQRDecorationUpload(e, q)"
+                  />
+                  <button @click="triggerQRFileInput(q.id)" class="btn btn-secondary btn-small">
+                    {{ q.decoration ? t('qrCode.changeDecoration') : t('qrCode.uploadDecoration') }}
+                  </button>
+                  <button v-if="q.decoration" @click="q.decoration = ''" class="btn btn-danger btn-small">
+                    {{ t('qrCode.removeDecoration') }}
+                  </button>
+                </div>
+                <img v-if="q.decoration" :src="q.decoration" class="decoration-preview" alt="QR decoration" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Settings -->
+        <div class="section">
+          <div class="section-header">
+            <h2>{{ t('footer.title') }}</h2>
+            <label class="toggle-label">
+              <input type="checkbox" v-model="cvData.footer.enabled" />
+              <span>{{ t('footer.enable') }}</span>
+            </label>
+          </div>
+          <div v-if="cvData.footer.enabled">
+            <div class="form-group">
+              <label>{{ t('footer.text') }}</label>
+              <textarea
+                v-model="cvData.footer.text"
+                :placeholder="t('footer.placeholder')"
+                rows="3"
+                class="full-width"
+              ></textarea>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- CV Preview -->
-      <CVPreview />
+      <!-- Preview pane (right side) -->
+      <div class="preview-pane">
+        <CVPreview />
+      </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { printCV } from '~/utils/printCV'
 import { useLanguages } from '~/data/languages'
 
 const { t, locale } = useI18n()
@@ -406,12 +388,7 @@ const {
   removeCustomField,
   addQRCode,
   removeQRCode,
-  clearData,
-  exportToJSON,
-  importFromJSON
 } = useCVData()
-
-const fileInput = ref<HTMLInputElement | null>(null)
 
 const languageOptions = computed(() => useLanguages(locale.value))
 
@@ -419,42 +396,6 @@ const languageOptions = computed(() => useLanguages(locale.value))
 onMounted(() => {
   loadFromStorage()
 })
-
-const handleExportJSON = () => {
-  exportToJSON()
-}
-
-const handleImportJSON = () => {
-  fileInput.value?.click()
-}
-
-const handleFileSelect = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    try {
-      await importFromJSON(file)
-      alert('CV data loaded successfully!')
-    } catch (error) {
-      alert('Error loading file. Please make sure it\'s a valid JSON file.')
-    }
-    if (target) target.value = ''
-  }
-}
-
-const handleClear = () => {
-  if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-    clearData()
-  }
-}
-
-const handleExportPDF = () => {
-  if (!cvData.value.personal.name || !cvData.value.personal.email) {
-    alert('Please fill in at least Name and Email before exporting.')
-    return
-  }
-  printCV(cvData.value, locale.value)
-}
 
 const triggerQRFileInput = (itemId: string) => {
   document.getElementById('qr-dec-input-' + itemId)?.click()
@@ -530,9 +471,39 @@ body {
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.form-pane {
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.preview-pane {
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .preview-pane {
+    position: static;
+  }
 }
 
 .toolbar {
