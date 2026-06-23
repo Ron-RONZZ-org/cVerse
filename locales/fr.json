@@ -98,14 +98,13 @@
   },
   "qualities": {
     "title": "Qualités",
-    "placeholder": "Listez vos principales qualités et compétences comportementales (Markdown supporté)\nex :\n- Créativité\n- Autonomie\n- Gestion des priorités\n- Sens des responsabilités",
-    "polygonMode": "Polygone de Forces",
-    "addAttribute": "Ajouter un attribut",
-    "attribute": "Attribut",
-    "attributeName": "Nom de l'attribut",
+    "addAttribute": "Ajouter une qualité",
+    "attribute": "Qualité",
+    "attributeName": "Nom de la qualité",
     "attributeNamePlaceholder": "ex : Créativité",
     "attributeScore": "Force",
-    "emptyAttributes": "Aucun attribut ajouté. Cliquez sur 'Ajouter un attribut' pour commencer."
+    "showStrength": "Afficher les scores de force",
+    "emptyAttributes": "Aucune qualité ajoutée. Cliquez sur 'Ajouter une qualité' pour commencer."
   },
   "skills": {
     "title": "Compétences",

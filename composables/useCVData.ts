@@ -11,6 +11,64 @@ const MIGRATE_CEFR: Record<number, CEFRLevel> = {
   5: 'C2'
 }
 
+function parseQualitiesMarkdown(text: string): QualityAttribute[] {
+  const attrs: QualityAttribute[] = []
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+    // Remove leading bullet markers
+    const name = trimmed.replace(/^[*-]\s+/, '').trim()
+    if (name) {
+      attrs.push({ id: crypto.randomUUID(), name, score: 3 })
+    }
+  }
+  return attrs
+}
+
+/** Migrate old CV data that may have `qualities`/`qualitiesMode` to new shape. */
+function migrateOldData(data: Record<string, unknown>): void {
+  // Migrate language levels from number to CEFR strings
+  const langs = data.languages as Array<Record<string, unknown>> | undefined
+  if (langs) {
+    for (const lang of langs) {
+      if (typeof lang.level === 'number') {
+        lang.level = MIGRATE_CEFR[lang.level as number] || 'B1'
+      }
+    }
+  }
+
+  // Migrate old qualities system: remove `qualities` and `qualitiesMode`,
+  // populate `qualityAttributes` if empty, set `qualitiesShowStrength`
+  const oldQualities = data.qualities as string | undefined
+  const oldMode = data.qualitiesMode as string | undefined
+  const attrs = data.qualityAttributes as QualityAttribute[] | undefined
+
+  delete data.qualities
+  delete data.qualitiesMode
+
+  if (!data.qualityAttributes) {
+    data.qualityAttributes = []
+  }
+
+  // If old markdown text exists and no structured attributes yet, parse it
+  if (oldQualities && attrs?.length === 0) {
+    const parsed = parseQualitiesMarkdown(oldQualities)
+    if (parsed.length > 0) {
+      ;(data.qualityAttributes as QualityAttribute[]) = parsed
+    }
+  }
+
+  // Determine showStrength from old mode, default to false
+  data.qualitiesShowStrength = oldMode === 'polygon'
+
+  // Ensure new fields exist for backward compatibility
+  if (!data.skills) (data as Record<string, unknown>).skills = ''
+  if (!data.interests) (data as Record<string, unknown>).interests = ''
+  if (!data.accentColor) (data as Record<string, unknown>).accentColor = '#2563eb'
+  if (!data.qrCode) (data as Record<string, unknown>).qrCode = { enabled: false, caption: '', decoration: '' }
+  if (!data.footer) (data as Record<string, unknown>).footer = { enabled: false, text: '' }
+}
+
 const emptyCV = (): CVData => ({
   personal: {
     name: '',
@@ -28,12 +86,11 @@ const emptyCV = (): CVData => ({
   education: [],
   languages: [],
   customSections: [],
-  qualities: '',
   skills: '',
   interests: '',
   accentColor: '#2563eb',
-  qualitiesMode: 'markdown',
   qualityAttributes: [],
+  qualitiesShowStrength: false,
   qrCode: {
     enabled: false,
     caption: '',
@@ -55,29 +112,8 @@ export const useCVData = () => {
       if (stored) {
         try {
           const loadedData = JSON.parse(stored)
-          // Ensure new fields exist for backward compatibility
-          if (!loadedData.languages) loadedData.languages = []
-          if (!loadedData.customSections) loadedData.customSections = []
-          if (!loadedData.personal) loadedData.personal = {}
-          if (!loadedData.personal.customFields) loadedData.personal.customFields = []
-          if (!loadedData.accentColor) loadedData.accentColor = '#2563eb'
-          if (!loadedData.qualities) loadedData.qualities = ''
-          if (!loadedData.skills) loadedData.skills = ''
-          if (!loadedData.interests) loadedData.interests = ''
-          // Migrate language levels from number to CEFR strings
-          if (loadedData.languages) {
-            for (const lang of loadedData.languages) {
-              if (typeof lang.level === 'number') {
-                lang.level = MIGRATE_CEFR[lang.level] || 'B1'
-              }
-            }
-          }
-          // New fields from the feature expansion
-          if (!loadedData.qualitiesMode) loadedData.qualitiesMode = 'markdown'
-          if (!loadedData.qualityAttributes) loadedData.qualityAttributes = []
-          if (!loadedData.qrCode) loadedData.qrCode = { enabled: false, caption: '', decoration: '' }
-          if (!loadedData.footer) loadedData.footer = { enabled: false, text: '' }
-          cvData.value = loadedData
+          migrateOldData(loadedData)
+          cvData.value = loadedData as CVData
         } catch (e) {
           console.error('Failed to parse stored CV data:', e)
         }
@@ -160,7 +196,7 @@ export const useCVData = () => {
     cvData.value.languages = cvData.value.languages.filter(l => l.id !== id)
   }
 
-  // --- Quality Attributes (polygon mode) ---
+  // --- Quality Attributes ---
   const addQualityAttribute = () => {
     cvData.value.qualityAttributes.push({
       id: crypto.randomUUID(),
@@ -241,15 +277,8 @@ export const useCVData = () => {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string)
-          // Migrate levels on import too
-          if (data.languages) {
-            for (const lang of data.languages) {
-              if (typeof lang.level === 'number') {
-                lang.level = MIGRATE_CEFR[lang.level] || 'B1'
-              }
-            }
-          }
-          cvData.value = data
+          migrateOldData(data)
+          cvData.value = data as CVData
           resolve()
         } catch (error) {
           reject(error)

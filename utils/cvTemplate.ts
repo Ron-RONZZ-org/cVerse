@@ -166,6 +166,14 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
   </div>`
 }
 
+function renderSimpleList(attributes: { name: string }[], accent: string): string {
+  if (attributes.length === 0) return ''
+  const items = attributes.map(a =>
+    `<li>${escapeHtml(a.name)}</li>`
+  ).join('\n')
+  return `<ul class="md-list">${items}</ul>`
+}
+
 // ─── QR Code (SVG embed) ────────────────────────────────────────────
 
 // Generate a minimal QR-like SVG as a placeholder.
@@ -266,10 +274,11 @@ export function renderCV(data: CVData, locale: string): string {
   }
 
   // ── Qualities ──
-  if (data.qualitiesMode === 'polygon' && data.qualityAttributes.length > 0) {
-    sections.push(sectionBlock('Qualities', renderStrengthPolygon(data.qualityAttributes, accent), accent))
-  } else if (data.qualities.trim()) {
-    sections.push(sectionBlock('Qualities', mdToHtml(data.qualities), accent))
+  if (data.qualityAttributes.length > 0) {
+    const body = data.qualitiesShowStrength
+      ? renderStrengthPolygon(data.qualityAttributes, accent)
+      : renderSimpleList(data.qualityAttributes, accent)
+    sections.push(sectionBlock('Qualities', body, accent))
   }
 
   // ── Skills ──

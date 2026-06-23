@@ -203,46 +203,34 @@
         <div class="section-header">
           <h2>{{ t('qualities.title') }}</h2>
           <label class="toggle-label">
-            <input type="checkbox" v-model="cvData.qualitiesMode" true-value="polygon" false-value="markdown" />
-            <span>{{ t('qualities.polygonMode') }}</span>
+            <input type="checkbox" v-model="cvData.qualitiesShowStrength" />
+            <span>{{ t('qualities.showStrength') }}</span>
           </label>
         </div>
-        <div v-if="cvData.qualitiesMode === 'markdown'">
+        <div class="form-group">
+          <button @click="addQualityAttribute" class="btn btn-primary btn-small">{{ t('qualities.addAttribute') }}</button>
+        </div>
+        <div
+          v-for="(attr, idx) in cvData.qualityAttributes"
+          :key="attr.id"
+          class="block"
+        >
+          <div class="block-header">
+            <h3>{{ t('qualities.attribute') }} #{{ idx + 1 }}</h3>
+            <button @click="removeQualityAttribute(attr.id)" class="btn-icon btn-danger">✕</button>
+          </div>
           <div class="form-group">
-            <textarea 
-              v-model="cvData.qualities" 
-              :placeholder="t('qualities.placeholder')"
-              rows="6"
-              class="full-width"
-            ></textarea>
+            <label>{{ t('qualities.attributeName') }}</label>
+            <input v-model="attr.name" type="text" :placeholder="t('qualities.attributeNamePlaceholder')" />
+          </div>
+          <div v-if="cvData.qualitiesShowStrength" class="form-group">
+            <label>{{ t('qualities.attributeScore') }}: {{ attr.score }}</label>
+            <input v-model.number="attr.score" type="range" min="1" max="5" step="1" class="slider" />
           </div>
         </div>
-        <div v-else>
-          <div class="form-group">
-            <button @click="addQualityAttribute" class="btn btn-primary btn-small">{{ t('qualities.addAttribute') }}</button>
-          </div>
-          <div
-            v-for="(attr, idx) in cvData.qualityAttributes"
-            :key="attr.id"
-            class="block"
-          >
-            <div class="block-header">
-              <h3>{{ t('qualities.attribute') }} #{{ idx + 1 }}</h3>
-              <button @click="removeQualityAttribute(attr.id)" class="btn-icon btn-danger">✕</button>
-            </div>
-            <div class="form-group">
-              <label>{{ t('qualities.attributeName') }}</label>
-              <input v-model="attr.name" type="text" :placeholder="t('qualities.attributeNamePlaceholder')" />
-            </div>
-            <div class="form-group">
-              <label>{{ t('qualities.attributeScore') }}: {{ attr.score }}</label>
-              <input v-model.number="attr.score" type="range" min="1" max="5" step="1" class="slider" />
-            </div>
-          </div>
-          <p v-if="cvData.qualityAttributes.length === 0" class="empty-message">
-            {{ t('qualities.emptyAttributes') }}
-          </p>
-        </div>
+        <p v-if="cvData.qualityAttributes.length === 0" class="empty-message">
+          {{ t('qualities.emptyAttributes') }}
+        </p>
       </div>
 
       <!-- Skills -->

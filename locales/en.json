@@ -98,14 +98,13 @@
   },
   "qualities": {
     "title": "Qualities",
-    "placeholder": "List your key qualities and soft skills (Markdown supported)\ne.g.:\n- Creativity\n- Autonomy\n- Priority management\n- Sense of responsibility",
-    "polygonMode": "Strength Polygon",
     "addAttribute": "Add Attribute",
-    "attribute": "Attribute",
-    "attributeName": "Attribute Name",
+    "attribute": "Quality",
+    "attributeName": "Quality Name",
     "attributeNamePlaceholder": "e.g., Creativity",
     "attributeScore": "Strength",
-    "emptyAttributes": "No attributes added yet. Click 'Add Attribute' to start."
+    "showStrength": "Show strength scores",
+    "emptyAttributes": "No qualities added yet. Click 'Add Attribute' to start."
   },
   "skills": {
     "title": "Skills",

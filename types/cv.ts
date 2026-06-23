@@ -73,12 +73,11 @@ export interface CVData {
   education: EducationBlock[]
   languages: LanguageSkill[]
   customSections: CustomSection[]
-  qualities: string
   skills: string
   interests: string
   accentColor: string
-  qualitiesMode: 'markdown' | 'polygon'
   qualityAttributes: QualityAttribute[]
+  qualitiesShowStrength: boolean
   qrCode: QRCodeConfig
   footer: FooterConfig
 }
