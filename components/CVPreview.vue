@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import QRCode from 'qrcode'
 import { renderCV } from '~/utils/cvTemplate'
@@ -69,7 +69,7 @@ const autoRefresh = ref(false)
 
 // Snapshot for manual refresh mode
 const renderKey = ref(0)
-const snapshotData = ref(structuredClone(cvData.value))
+const snapshotData = ref(structuredClone(toRaw(cvData.value)))
 const snapshotLocale = ref(locale.value)
 
 // The HTML used in the iframe
@@ -86,14 +86,14 @@ const cvHtml = computed(() => {
 
 // Take initial snapshot on mount
 onMounted(() => {
-  snapshotData.value = structuredClone(cvData.value)
+  snapshotData.value = structuredClone(toRaw(cvData.value))
   snapshotLocale.value = locale.value
 })
 
 // When turning off auto-refresh, capture current live state as snapshot
 watch(autoRefresh, (newVal) => {
   if (!newVal) {
-    snapshotData.value = structuredClone(cvData.value)
+    snapshotData.value = structuredClone(toRaw(cvData.value))
     snapshotLocale.value = locale.value
     renderKey.value++
   }
@@ -109,7 +109,7 @@ watch(cvHtml, async () => {
 
 // Manual refresh: capture current data/locale and bump render key
 function refreshPreview() {
-  snapshotData.value = structuredClone(cvData.value)
+  snapshotData.value = structuredClone(toRaw(cvData.value))
   snapshotLocale.value = locale.value
   renderKey.value++
 }
@@ -167,7 +167,7 @@ const handleFileSelect = async (event: Event) => {
     try {
       await importFromJSON(file)
       // Update snapshot so manual mode shows the imported data
-      snapshotData.value = structuredClone(cvData.value)
+      snapshotData.value = structuredClone(toRaw(cvData.value))
       snapshotLocale.value = locale.value
       renderKey.value++
     } catch {
@@ -180,7 +180,7 @@ const handleFileSelect = async (event: Event) => {
 const handleClear = () => {
   if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
     clearData()
-    snapshotData.value = structuredClone(cvData.value)
+    snapshotData.value = structuredClone(toRaw(cvData.value))
     snapshotLocale.value = locale.value
     renderKey.value++
   }
