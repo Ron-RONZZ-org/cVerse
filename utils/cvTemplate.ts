@@ -468,8 +468,27 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     width: 210mm;
     min-height: 297mm;
     margin: 0 auto;
-    background: #ffffff;
     position: relative;
+  }
+
+  /*
+   * Fixed-position pseudo-element replicates on every printed page.
+   * Chrome repeats position:fixed elements across fragments, so this
+   * guarantees a full background on every page — including the last
+   * page below the content area.
+   */
+  .cv-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: -1;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    pointer-events: none;
   }
 
   /* ── Accent top bar ── */
@@ -827,6 +846,9 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   }
 
   html.dark .cv-page {
+    /* background moved to ::before for print reliability */
+  }
+  html.dark .cv-page::before {
     background: #1e293b;
   }
 
