@@ -448,12 +448,24 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     margin: 0;
   }
 
+  /*
+   * html background fills the viewport/page area uniformly.
+   * Chrome's print engine clips body backgrounds below fragmented
+   * content, but html backgrounds reliably span every printed page.
+   * During screen preview we hide it via @media screen override.
+   */
+  html {
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   body {
     font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     font-size: 10pt;
     line-height: 1.5;
     color: #1e293b;
-    background: #f1f5f9;
+    background: transparent;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -788,8 +800,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   @media print {
     html {
       background: #ffffff;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
     }
 
     body {
@@ -812,19 +822,18 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     }
   }
 
-  /* ── Screen only (preview) ── */
-  @media screen {
-    .cv-page {
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-      margin: 16px auto;
-      border-radius: 2px;
-    }
+  /* ── Dark mode overrides (must come before @media screen) ── */
+  html.dark {
+    background: #1e293b;
   }
 
-  /* ── Dark mode overrides ── */
+  /*
+   * Body transparent in base so html background shows during print.
+   * @media screen re-opacifies body for preview.
+   */
   html.dark body {
     color: #e2e8f0;
-    background: #0f172a;
+    background: transparent;
   }
 
   html.dark .cv-page {
@@ -868,12 +877,24 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     border-top-color: #334155;
   }
 
-  @media print {
-    html.dark {
-      background: #1e293b;
-    }
-    html.dark body {
+  /* ── Screen only (preview) — overrides dark transparent body ── */
+  @media screen {
+    html {
       background: transparent;
+    }
+
+    body {
+      background: #f1f5f9;
+    }
+
+    html.dark body {
+      background: #0f172a;
+    }
+
+    .cv-page {
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      margin: 16px auto;
+      border-radius: 2px;
     }
   }
 </style>
