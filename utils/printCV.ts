@@ -34,7 +34,7 @@ export async function printCV(data: CVData, locale: string, darkMode = false): P
   }
 
   const safeName = data.personal.name
-    ? data.personal.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '')
+    ? data.personal.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')
     : 'CV'
 
   const iframe = document.createElement('iframe')

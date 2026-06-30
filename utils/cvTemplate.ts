@@ -439,7 +439,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 <html lang="${locale}"${darkMode ? ' class="dark"' : ''}>
 <head>
 <meta charset="utf-8">
-<title>CV – ${name || 'document'}</title>
+<title>${data.personal.name ? data.personal.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') : 'document'}</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

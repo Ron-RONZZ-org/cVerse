@@ -306,12 +306,14 @@ export const useCVData = () => {
   }
 
   const exportToJSON = () => {
+    const name = cvData.value.personal.name?.trim() || 'CV'
+    const safeName = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')
     const dataStr = JSON.stringify(cvData.value, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `cv-${Date.now()}.json`
+    link.download = `${safeName}.json`
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -322,7 +324,14 @@ export const useCVData = () => {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string)
+          // Preserve current exportTheme if imported data lacks it
+          const prevExportTheme = cvData.value.exportTheme
+          const hadExportTheme = 'exportTheme' in data
           migrateOldData(data)
+          // Check BEFORE migrateOldData — it adds 'exportTheme' if missing
+          if (!hadExportTheme) {
+            (data as CVData).exportTheme = prevExportTheme
+          }
           cvData.value = data as CVData
           resolve()
         } catch (error) {
