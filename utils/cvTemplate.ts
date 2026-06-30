@@ -448,18 +448,8 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     margin: 0;
   }
 
-  /*
-   * Repeating gradient on html guarantees every printed page fragment
-   * gets the full background color. Chrome slices the html background
-   * across page boundaries; a repeating-linear-gradient with a 297mm
-   * (one page height) cycle keeps each page filled uniformly.
-   */
   html {
-    background: repeating-linear-gradient(
-      to bottom,
-      #ffffff 0mm,
-      #ffffff 297mm
-    );
+    background: #ffffff;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -480,8 +470,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     margin: 0 auto;
     background: #ffffff;
     position: relative;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
   }
 
   /* ── Accent top bar ── */
@@ -826,11 +814,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   /* ── Dark mode overrides (must come before @media screen) ── */
   html.dark {
-    background: repeating-linear-gradient(
-      to bottom,
-      #1e293b 0mm,
-      #1e293b 297mm
-    );
+    background: #1e293b;
   }
 
   /*
