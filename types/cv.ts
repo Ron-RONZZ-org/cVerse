@@ -86,6 +86,7 @@ export interface CVData {
   qualitiesShowStrength: boolean
   qrCode: QRCodeConfig
   footer: FooterConfig
+  exportTheme: 'light' | 'dark'
 }
 
 // Dropdown data types

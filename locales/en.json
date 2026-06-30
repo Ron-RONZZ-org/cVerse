@@ -171,6 +171,9 @@
     "interests": "Interests"
   },
   "theme": {
-    "toggle": "Toggle dark/light theme"
+    "toggle": "Toggle dark/light theme",
+    "light": "Light",
+    "dark": "Dark",
+    "exportLabel": "CV export theme"
   }
 }

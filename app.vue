@@ -897,15 +897,21 @@ html.dark .language-select option {
 
 /* ── Component-level dark overrides ── */
 
-/* SplitPane divider */
-html.dark .split-handle {
+/* SplitPane resize handle */
+html.dark .split-pane .resize-handle:hover {
   background: #334155 !important;
 }
-html.dark .split-handle:hover {
-  background: #3b82f6 !important;
+html.dark .split-pane .handle-dots {
+  background: #475569 !important;
+  box-shadow:
+    0 -10px 0 #475569,
+    0 10px 0 #475569 !important;
 }
-html.dark .split-handle::after {
+html.dark .split-pane .resize-handle:hover .handle-dots {
   background: #64748b !important;
+  box-shadow:
+    0 -10px 0 #64748b,
+    0 10px 0 #64748b !important;
 }
 
 /* LayoutToggle */
@@ -916,51 +922,6 @@ html.dark .layout-toggle-btn.active {
   background: #253548 !important;
   border-color: #3b82f6 !important;
   color: #e2e8f0 !important;
-}
-
-/* DropdownAutocomplete */
-html.dark .dropdown-panel {
-  background: #1e293b !important;
-  border-color: #334155 !important;
-}
-html.dark .dropdown-item {
-  color: #e2e8f0 !important;
-}
-html.dark .dropdown-item:hover,
-html.dark .dropdown-item.highlighted {
-  background: #253548 !important;
-}
-
-/* PhotoCropper */
-html.dark .cropper-label {
-  color: #e2e8f0 !important;
-}
-html.dark .cropper-hint {
-  color: #64748b !important;
-}
-html.dark .cropper-coords {
-  color: #94a3b8 !important;
-}
-
-/* ExperienceBlock / EducationBlock */
-html.dark .block-entry {
-  background: #253548 !important;
-  border-color: #334155 !important;
-}
-html.dark .block-entry h3,
-html.dark .block-entry .entry-label {
-  color: #e2e8f0 !important;
-}
-html.dark .block-entry .entry-meta {
-  color: #94a3b8 !important;
-}
-
-/* PersonalInfoForm */
-html.dark .photo-label {
-  color: #e2e8f0 !important;
-}
-html.dark .photo-hint {
-  color: #94a3b8 !important;
 }
 
 .photo-upload-btn-wrapper {

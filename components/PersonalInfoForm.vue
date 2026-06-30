@@ -169,7 +169,7 @@ const removePhoto = () => {
 
 <style scoped>
 .section {
-  background: white;
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -179,7 +179,7 @@ const removePhoto = () => {
 h2 {
   margin-top: 0;
   margin-bottom: 20px;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.5rem;
 }
 
@@ -197,7 +197,7 @@ label {
   display: block;
   margin-bottom: 5px;
   font-weight: 600;
-  color: #34495e;
+  color: var(--text-primary);
 }
 
 label.required::after {
@@ -208,10 +208,12 @@ label.required::after {
 input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   box-sizing: border-box;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 input:focus {
@@ -235,7 +237,7 @@ input:focus {
   height: 120px;
   object-fit: cover;
   border-radius: 8px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--border-color);
 }
 
 .btn {

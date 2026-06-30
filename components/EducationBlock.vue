@@ -102,10 +102,10 @@ const { t } = useI18n()
 
 <style scoped>
 .block {
-  background: #f8f9fa;
+  background: var(--bg-block);
   padding: 15px;
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-light);
   margin-bottom: 15px;
 }
 
@@ -119,7 +119,7 @@ const { t } = useI18n()
 h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .block-actions {
@@ -129,8 +129,9 @@ h3 {
 
 .btn-icon {
   padding: 5px 10px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -162,18 +163,20 @@ label {
   display: block;
   margin-bottom: 5px;
   font-weight: 600;
-  color: #34495e;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
 input, textarea {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   box-sizing: border-box;
   font-family: inherit;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 input:focus, textarea:focus {

@@ -171,6 +171,9 @@
     "interests": "Centres d'Intérêt"
   },
   "theme": {
-    "toggle": "Basculer thème clair/sombre"
+    "toggle": "Basculer thème clair/sombre",
+    "light": "Clair",
+    "dark": "Sombre",
+    "exportLabel": "Thème d'exportation CV"
   }
 }

@@ -91,6 +91,9 @@ function migrateOldData(data: Record<string, unknown>): void {
 
   // Determine showStrength from old mode, default to false
   data.qualitiesShowStrength = oldMode === 'polygon'
+
+  // Default export theme to light for backward compatibility
+  if (!data.exportTheme) (data as Record<string, unknown>).exportTheme = 'light'
 }
 
 const emptyCV = (): CVData => ({
@@ -122,7 +125,8 @@ const emptyCV = (): CVData => ({
   footer: {
     enabled: false,
     text: ''
-  }
+  },
+  exportTheme: 'light'
 })
 
 export const useCVData = () => {

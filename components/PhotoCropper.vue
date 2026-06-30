@@ -282,7 +282,7 @@ const handleOverlayClick = () => {
 }
 
 .modal-content {
-  background: white;
+  background: var(--bg-card);
   border-radius: 8px;
   max-width: 600px;
   width: 100%;
@@ -296,19 +296,19 @@ const handleOverlayClick = () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .close-btn {
   background: none;
   border: none;
   font-size: 32px;
-  color: #95a5a6;
+  color: var(--text-muted);
   cursor: pointer;
   line-height: 1;
   padding: 0;
@@ -320,7 +320,7 @@ const handleOverlayClick = () => {
 }
 
 .close-btn:hover {
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .crop-container {
@@ -335,13 +335,13 @@ const handleOverlayClick = () => {
 
 canvas {
   max-width: 100%;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   cursor: move;
 }
 
 .crop-instructions {
   text-align: center;
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -349,7 +349,7 @@ canvas {
   display: flex;
   gap: 10px;
   padding: 20px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border-color);
   justify-content: flex-end;
 }
 </style>

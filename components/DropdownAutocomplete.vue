@@ -107,10 +107,12 @@ function onKeydown(e: KeyboardEvent) {
 .autocomplete-input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   box-sizing: border-box;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .autocomplete-input:focus {
@@ -127,8 +129,8 @@ function onKeydown(e: KeyboardEvent) {
   z-index: 100;
   max-height: 250px;
   overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-top: none;
   border-radius: 0 0 4px 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -141,7 +143,7 @@ function onKeydown(e: KeyboardEvent) {
   padding: 8px 12px;
   cursor: pointer;
   font-size: 14px;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .autocomplete-item:hover,

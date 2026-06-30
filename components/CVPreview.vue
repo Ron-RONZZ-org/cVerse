@@ -25,6 +25,10 @@
         <button @click="handlePrint" class="btn btn-primary btn-sm">
           {{ t('app.export') }}
         </button>
+        <select v-model="cvData.exportTheme" class="export-theme-select" :title="t('theme.exportLabel')">
+          <option value="light">{{ t('theme.light') }}</option>
+          <option value="dark">{{ t('theme.dark') }}</option>
+        </select>
         <div class="toolbar-spacer"></div>
         <button @click="refreshPreview" class="btn btn-secondary btn-sm">
           {{ t('preview.refresh') }}
@@ -55,11 +59,8 @@ import QRCode from 'qrcode'
 import { renderCV } from '~/utils/cvTemplate'
 import { printCV } from '~/utils/printCV'
 import { useCVData } from '~/composables/useCVData'
-import { useTheme } from '~/composables/useTheme'
-
 const { t, locale } = useI18n()
 const { cvData, clearData, exportToJSON, importFromJSON } = useCVData()
-const { isDark } = useTheme()
 
 const collapsed = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
@@ -78,14 +79,14 @@ const snapshotLocale = ref(locale.value)
 // The HTML used in the iframe
 const cvHtml = computed(() => {
   void renderKey.value
-  void isDark.value
   qrReplaced.value = false
+  const expTheme = cvData.value.exportTheme === 'dark'
   if (autoRefresh.value) {
     // Live mode: recompute on every cvData / locale change
-    return renderCV(cvData.value, locale.value, isDark.value)
+    return renderCV(cvData.value, locale.value, expTheme)
   }
   // Manual mode: only recompute when renderKey changes (snapshot taken)
-  return renderCV(snapshotData.value, snapshotLocale.value, isDark.value)
+  return renderCV(snapshotData.value, snapshotLocale.value, expTheme)
 })
 
 // Take initial snapshot on mount
@@ -133,8 +134,9 @@ async function replaceQRPlaceholders() {
     if (!item || !item.url) continue
 
     try {
-      const qrDark = isDark.value ? '#e2e8f0' : '#1e293b'
-      const qrLight = isDark.value ? '#1e293b' : '#ffffff'
+      const isExpDark = cvData.value.exportTheme === 'dark'
+      const qrDark = isExpDark ? '#e2e8f0' : '#1e293b'
+      const qrLight = isExpDark ? '#1e293b' : '#ffffff'
       const qrSvg = await QRCode.toString(item.url, {
         type: 'svg',
         margin: 2,
@@ -197,7 +199,7 @@ const handlePrint = () => {
     alert('Please fill in at least Name and Email before exporting.')
     return
   }
-  printCV(cvData.value, locale.value, isDark.value)
+  printCV(cvData.value, locale.value, cvData.value.exportTheme === 'dark')
 }
 </script>
 
@@ -259,6 +261,17 @@ const handlePrint = () => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.export-theme-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  font-size: 12px;
+  background: var(--bg-card, white);
+  color: var(--text-primary, #2c3e50);
+  cursor: pointer;
+  font-weight: 500;
 }
 
 .auto-refresh-label input[type="checkbox"] {
