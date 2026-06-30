@@ -476,6 +476,8 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     margin: 0 auto;
     background: #ffffff;
     position: relative;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 
   /* ── Accent top bar ── */
