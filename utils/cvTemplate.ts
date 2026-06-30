@@ -90,7 +90,7 @@ function languageBar(level: CEFRLevel, accent: string, locale: string): string {
   const pct = ((idx + 1) / CEFR_ORDER.length) * 100
   return `
     <div class="lang-bar-bg">
-      <div class="lang-bar-fill" style="width:${pct}%;background:${effectiveAccent}"></div>
+      <div class="lang-bar-fill" style="width:${pct}%;background:${accent}"></div>
     </div>
     <span class="lang-level">${labels[level] || level}</span>`
 }
@@ -104,7 +104,7 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
       `<div class="polygon-fallback-row">
         <span class="polygon-fallback-name">${escapeHtml(a.name)}</span>
         <div class="polygon-fallback-bar-bg">
-          <div class="polygon-fallback-bar-fill" style="width:${(a.score / 5) * 100}%;background:${effectiveAccent}"></div>
+          <div class="polygon-fallback-bar-fill" style="width:${(a.score / 5) * 100}%;background:${accent}"></div>
         </div>
         <span class="polygon-fallback-score">${a.score}/5</span>
       </div>`
@@ -230,14 +230,14 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
         return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${gridStroke}" stroke-width="1" />`
       }).join('\n')}
       <!-- Data polygon -->
-      <polygon points="${points}" fill="${effectiveAccent}30" stroke="${effectiveAccent}" stroke-width="2" />
+      <polygon points="${points}" fill="${accent}30" stroke="${accent}" stroke-width="2" />
       <!-- Data points -->
       ${attributes.map((a, i) => {
         const angle = startAngle + i * angleStep
         const r = (a.score / 5) * radius
         const x = cx + r * Math.cos(angle)
         const y = cy + r * Math.sin(angle)
-        return `<circle cx="${x}" cy="${y}" r="4" fill="${effectiveAccent}" />`
+        return `<circle cx="${x}" cy="${y}" r="4" fill="${accent}" />`
       }).join('\n')}
       <!-- Labels -->
       ${labels}
