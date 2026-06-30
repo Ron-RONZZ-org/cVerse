@@ -378,11 +378,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLanguages } from '~/data/languages'
 import { useLayoutState } from '~/composables/useLayoutState'
 import { useTheme } from '~/composables/useTheme'
+
+const LOCALE_KEY = 'cverse-locale'
 
 const { t, locale } = useI18n()
 const layoutState = useLayoutState()
@@ -433,6 +435,16 @@ const languageOptions = computed(() => useLanguages(locale.value))
 onMounted(() => {
   loadFromStorage()
   layoutState.loadFromStorage()
+  // Restore locale preference
+  const savedLocale = localStorage.getItem(LOCALE_KEY)
+  if (savedLocale === 'en' || savedLocale === 'fr') {
+    locale.value = savedLocale
+  }
+})
+
+// Persist locale preference
+watch(locale, (val) => {
+  localStorage.setItem(LOCALE_KEY, val)
 })
 
 const triggerQRFileInput = (itemId: string) => {

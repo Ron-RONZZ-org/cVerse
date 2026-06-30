@@ -445,6 +445,10 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   @page {
     size: A4;
+    margin: 10mm 0 0 0;
+  }
+
+  @page :first {
     margin: 0;
   }
 
@@ -783,12 +787,12 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   /* ── Print only ── */
   @media print {
     body {
-      background: white;
+      background: #ffffff;
     }
 
     .cv-page {
       box-shadow: none;
-      margin: 0;
+      margin: 0 auto;
       width: 100%;
       min-height: 100vh;
     }
@@ -860,7 +864,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   @media print {
     html.dark body {
-      background: #0f172a;
+      background: #1e293b;
     }
   }
 </style>
