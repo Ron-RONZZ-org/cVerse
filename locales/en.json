@@ -169,5 +169,8 @@
     "qualities": "Qualities",
     "skills": "Skills",
     "interests": "Interests"
+  },
+  "theme": {
+    "toggle": "Toggle dark/light theme"
   }
 }

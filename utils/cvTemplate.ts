@@ -96,7 +96,7 @@ function languageBar(level: CEFRLevel, accent: string, locale: string): string {
 
 // ─── Strength polygon (SVG) ─────────────────────────────────────────
 
-function renderStrengthPolygon(attributes: { name: string; score: number }[], accent: string): string {
+function renderStrengthPolygon(attributes: { name: string; score: number }[], accent: string, darkMode = false): string {
   if (attributes.length < 3) {
     // Fallback to list if fewer than 3 attributes
     return attributes.map(a =>
@@ -116,6 +116,8 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
   const radius = 130
   const angleStep = (2 * Math.PI) / n
   const startAngle = -Math.PI / 2 // start at top
+  const gridStroke = darkMode ? '#334155' : '#e2e8f0'
+  const labelFill = darkMode ? '#cbd5e1' : '#334155'
 
   // Build polygon points
   const points = attributes.map((a, i) => {
@@ -139,12 +141,33 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
     return pts
   })
 
-  // Labels – placed near vertex positions with small offsets
-  // Strategy: start at vertex, add small radial offset + perpendicular shift,
-  // clamp to viewBox bounds to prevent overflow.
+  // Labels – placed near vertex positions with small offsets.
+  // Uses <tspan> to wrap long names on multiple lines, preventing viewBox overflow.
   const radialOff = 8
   const perpOff = 14
   const pad = 6
+  const FONT_SIZE = 9
+  const CHAR_W = 5.2          // avg char width at font-size=9 (sans-serif)
+  const LINE_H = 11            // line height in SVG user units
+  const VIEWBOX = 400
+
+  function wrapLabel(text: string, maxWidth: number): string[] {
+    if (maxWidth <= 0) return [text]
+    const words = text.split(/\s+/)
+    const lines: string[] = []
+    let current = ''
+    for (const word of words) {
+      const candidate = current ? current + ' ' + word : word
+      if (candidate.length * CHAR_W <= maxWidth) {
+        current = candidate
+      } else {
+        if (current) lines.push(current)
+        current = word
+      }
+    }
+    if (current) lines.push(current)
+    return lines.length > 0 ? lines : [text]
+  }
 
   const labels = attributes.map((a, i) => {
     const angle = startAngle + i * angleStep
@@ -160,8 +183,8 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
     let y = cy + (radius + radialOff) * dy + perpOff * pdy
 
     // Clamp to viewBox bounds
-    x = Math.max(pad, Math.min(400 - pad, x))
-    y = Math.max(pad, Math.min(400 - pad, y))
+    x = Math.max(pad, Math.min(VIEWBOX - pad, x))
+    y = Math.max(pad, Math.min(VIEWBOX - pad, y))
 
     let anchor: string
     const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
@@ -172,20 +195,38 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
     } else {
       anchor = 'start'
     }
-    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-size="9" fill="#334155">${escapeHtml(a.name)}</text>`
+
+    // Compute available width for this label based on anchor
+    const availWidth = anchor === 'start' ? VIEWBOX - pad - x
+      : anchor === 'end' ? x - pad
+      : 2 * Math.min(x - pad, VIEWBOX - pad - x)
+
+    const lines = wrapLabel(a.name, Math.max(availWidth, 30))
+    const escaped = escapeHtml(a.name)
+
+    if (lines.length === 1) {
+      return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-size="${FONT_SIZE}" fill="${labelFill}">${escaped}</text>`
+    }
+
+    // Multi-line: shift first-line baseline up so the block is centred on y
+    const firstY = y - (lines.length - 1) * LINE_H / 2
+    const tspans = lines.map((line, li) =>
+      `<tspan x="${x}" dy="${li === 0 ? 0 : LINE_H}">${escapeHtml(line)}</tspan>`
+    ).join('')
+    return `<text x="${x}" y="${firstY}" text-anchor="${anchor}" font-size="${FONT_SIZE}" fill="${labelFill}">${tspans}</text>`
   }).join('\n')
 
   return `
   <div class="polygon-container">
     <svg viewBox="0 0 400 400" class="strength-polygon" xmlns="http://www.w3.org/2000/svg">
       <!-- Grid -->
-      ${gridPolygons.map(pts => `<polygon points="${pts}" fill="none" stroke="#e2e8f0" stroke-width="1" />`).join('\n')}
+      ${gridPolygons.map(pts => `<polygon points="${pts}" fill="none" stroke="${gridStroke}" stroke-width="1" />`).join('\n')}
       <!-- Axes -->
       ${attributes.map((_, i) => {
         const angle = startAngle + i * angleStep
         const x = cx + radius * Math.cos(angle)
         const y = cy + radius * Math.sin(angle)
-        return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`
+        return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${gridStroke}" stroke-width="1" />`
       }).join('\n')}
       <!-- Data polygon -->
       <polygon points="${points}" fill="${accent}30" stroke="${accent}" stroke-width="2" />
@@ -272,7 +313,7 @@ function tStr(key: string, locale: string): string {
 
 // ─── HTML document builder ──────────────────────────────────────────
 
-export function renderCV(data: CVData, locale: string): string {
+export function renderCV(data: CVData, locale: string, darkMode = false): string {
   const accent = data.accentColor || '#2563eb'
   const name = escapeHtml(data.personal.name || '')
   const headline = data.personal.headline ? escapeHtml(data.personal.headline) : ''
@@ -352,7 +393,7 @@ export function renderCV(data: CVData, locale: string): string {
   // ── Qualities ──
   if (data.qualityAttributes.length > 0) {
     const body = data.qualitiesShowStrength
-      ? renderStrengthPolygon(data.qualityAttributes, accent)
+      ? renderStrengthPolygon(data.qualityAttributes, accent, darkMode)
       : renderSimpleList(data.qualityAttributes, accent)
     sections.push(sectionBlock(tStr('qualities', locale), body, accent))
   }
@@ -395,7 +436,7 @@ export function renderCV(data: CVData, locale: string): string {
 
   // ── Assemble full HTML ──
   return `<!DOCTYPE html>
-<html lang="${locale}">
+<html lang="${locale}"${darkMode ? ' class="dark"' : ''}>
 <head>
 <meta charset="utf-8">
 <title>CV – ${name || 'document'}</title>
@@ -767,6 +808,59 @@ export function renderCV(data: CVData, locale: string): string {
       box-shadow: 0 2px 16px rgba(0,0,0,0.08);
       margin: 16px auto;
       border-radius: 2px;
+    }
+  }
+
+  /* ── Dark mode overrides ── */
+  html.dark body {
+    color: #e2e8f0;
+    background: #0f172a;
+  }
+
+  html.dark .cv-page {
+    background: #1e293b;
+  }
+
+  html.dark .cv-name,
+  html.dark .entry-title {
+    color: #f1f5f9;
+  }
+
+  html.dark .contact-row {
+    color: #94a3b8;
+  }
+
+  html.dark .entry-subtitle {
+    color: #94a3b8;
+  }
+
+  html.dark .entry-body,
+  html.dark .polygon-fallback-name {
+    color: #cbd5e1;
+  }
+
+  html.dark .lang-bar-bg,
+  html.dark .polygon-fallback-bar-bg {
+    background: #334155;
+  }
+
+  html.dark .lang-level,
+  html.dark .polygon-fallback-score {
+    color: #94a3b8;
+  }
+
+  html.dark .qr-caption {
+    color: #94a3b8;
+  }
+
+  html.dark .cv-footer {
+    color: #64748b;
+    border-top-color: #334155;
+  }
+
+  @media print {
+    html.dark body {
+      background: #0f172a;
     }
   }
 </style>

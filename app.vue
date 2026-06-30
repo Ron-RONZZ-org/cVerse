@@ -16,6 +16,15 @@
           >
             <span class="layout-mode-icon" v-html="layoutIcon"></span>
           </button>
+          <!-- Theme toggle -->
+          <button
+            class="header-theme-toggle"
+            :title="t('theme.toggle')"
+            @click="toggleTheme"
+          >
+            <span v-if="isDark" class="theme-icon">&#x2600;</span>
+            <span v-else class="theme-icon">&#x263E;</span>
+          </button>
         </div>
       </div>
     </header>
@@ -373,9 +382,11 @@ import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLanguages } from '~/data/languages'
 import { useLayoutState } from '~/composables/useLayoutState'
+import { useTheme } from '~/composables/useTheme'
 
 const { t, locale } = useI18n()
 const layoutState = useLayoutState()
+const { isDark, toggleTheme } = useTheme()
 
 // Cycle through layout modes: split → preview → form → split
 function cycleLayoutMode() {
@@ -443,6 +454,37 @@ const handleQRDecorationUpload = (event: Event, qrItem: { id: string; decoration
 </script>
 
 <style>
+/* ── Theme CSS custom properties ── */
+:root {
+  --bg-primary: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-block: #f8f9fa;
+  --bg-block-border: #e0e0e0;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --text-muted: #95a5a6;
+  --border-color: #ddd;
+  --border-light: #e0e0e0;
+  --slider-bg: #e2e8f0;
+  --preview-bg: #f1f5f9;
+  --preview-border: #e2e8f0;
+}
+
+html.dark {
+  --bg-primary: #0f172a;
+  --bg-card: #1e293b;
+  --bg-block: #1e293b;
+  --bg-block-border: #334155;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --border-light: #334155;
+  --slider-bg: #334155;
+  --preview-bg: #0f172a;
+  --preview-border: #334155;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -451,8 +493,8 @@ const handleQRDecorationUpload = (event: Event, qrItem: { id: string; decoration
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: #f5f7fa;
-  color: #2c3e50;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 #app {
@@ -524,6 +566,33 @@ body {
   justify-content: center;
 }
 
+.header-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+  line-height: 1;
+}
+
+.header-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+}
+
+.theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -538,7 +607,7 @@ body {
 }
 
 .section {
-  background: white;
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -562,7 +631,7 @@ body {
 
 h2 {
   font-size: 1.5rem;
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -579,7 +648,7 @@ h2 {
 textarea.full-width {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   font-family: inherit;
@@ -595,7 +664,7 @@ textarea.full-width:focus {
 .headline-input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 16px;
   font-family: inherit;
@@ -616,7 +685,7 @@ textarea.full-width:focus {
 .color-picker {
   width: 60px;
   height: 40px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -628,12 +697,12 @@ textarea.full-width:focus {
 .color-value {
   font-family: monospace;
   font-size: 14px;
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
 .empty-message {
-  color: #95a5a6;
+  color: var(--text-muted);
   text-align: center;
   padding: 20px;
   font-style: italic;
@@ -641,10 +710,10 @@ textarea.full-width:focus {
 
 /* ── Block (reusable for language, custom section, etc.) ── */
 .block {
-  background: #f8f9fa;
+  background: var(--bg-block);
   padding: 15px;
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-light);
   margin-bottom: 15px;
 }
 
@@ -658,7 +727,7 @@ textarea.full-width:focus {
 .block-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 /* ── Buttons ── */
@@ -712,8 +781,9 @@ textarea.full-width:focus {
 
 .btn-icon {
   padding: 5px 10px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -735,11 +805,12 @@ textarea.full-width:focus {
 .form-select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   font-family: inherit;
-  background: white;
+  background: var(--bg-card);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
@@ -755,7 +826,7 @@ textarea.full-width:focus {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #2c3e50;
+  color: var(--text-primary);
   cursor: pointer;
   user-select: none;
 }
@@ -771,7 +842,7 @@ textarea.full-width:focus {
   width: 100%;
   height: 8px;
   appearance: none;
-  background: #e2e8f0;
+  background: var(--slider-bg);
   border-radius: 4px;
   outline: none;
   cursor: pointer;
@@ -793,9 +864,103 @@ textarea.full-width:focus {
   width: 60px;
   height: 60px;
   object-fit: contain;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   margin-top: 8px;
+}
+
+/* ── Input/textarea dark mode overrides ── */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background: #253548;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b;
+}
+
+html.dark .language-select option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+/* ── Component-level dark overrides ── */
+
+/* SplitPane divider */
+html.dark .split-handle {
+  background: #334155 !important;
+}
+html.dark .split-handle:hover {
+  background: #3b82f6 !important;
+}
+html.dark .split-handle::after {
+  background: #64748b !important;
+}
+
+/* LayoutToggle */
+html.dark .layout-toggle-btn {
+  color: #94a3b8 !important;
+}
+html.dark .layout-toggle-btn.active {
+  background: #253548 !important;
+  border-color: #3b82f6 !important;
+  color: #e2e8f0 !important;
+}
+
+/* DropdownAutocomplete */
+html.dark .dropdown-panel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+html.dark .dropdown-item {
+  color: #e2e8f0 !important;
+}
+html.dark .dropdown-item:hover,
+html.dark .dropdown-item.highlighted {
+  background: #253548 !important;
+}
+
+/* PhotoCropper */
+html.dark .cropper-label {
+  color: #e2e8f0 !important;
+}
+html.dark .cropper-hint {
+  color: #64748b !important;
+}
+html.dark .cropper-coords {
+  color: #94a3b8 !important;
+}
+
+/* ExperienceBlock / EducationBlock */
+html.dark .block-entry {
+  background: #253548 !important;
+  border-color: #334155 !important;
+}
+html.dark .block-entry h3,
+html.dark .block-entry .entry-label {
+  color: #e2e8f0 !important;
+}
+html.dark .block-entry .entry-meta {
+  color: #94a3b8 !important;
+}
+
+/* PersonalInfoForm */
+html.dark .photo-label {
+  color: #e2e8f0 !important;
+}
+html.dark .photo-hint {
+  color: #94a3b8 !important;
 }
 
 .photo-upload-btn-wrapper {

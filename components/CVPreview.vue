@@ -55,9 +55,11 @@ import QRCode from 'qrcode'
 import { renderCV } from '~/utils/cvTemplate'
 import { printCV } from '~/utils/printCV'
 import { useCVData } from '~/composables/useCVData'
+import { useTheme } from '~/composables/useTheme'
 
 const { t, locale } = useI18n()
 const { cvData, clearData, exportToJSON, importFromJSON } = useCVData()
+const { isDark } = useTheme()
 
 const collapsed = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
@@ -76,13 +78,14 @@ const snapshotLocale = ref(locale.value)
 // The HTML used in the iframe
 const cvHtml = computed(() => {
   void renderKey.value
+  void isDark.value
   qrReplaced.value = false
   if (autoRefresh.value) {
     // Live mode: recompute on every cvData / locale change
-    return renderCV(cvData.value, locale.value)
+    return renderCV(cvData.value, locale.value, isDark.value)
   }
   // Manual mode: only recompute when renderKey changes (snapshot taken)
-  return renderCV(snapshotData.value, snapshotLocale.value)
+  return renderCV(snapshotData.value, snapshotLocale.value, isDark.value)
 })
 
 // Take initial snapshot on mount
@@ -130,10 +133,12 @@ async function replaceQRPlaceholders() {
     if (!item || !item.url) continue
 
     try {
+      const qrDark = isDark.value ? '#e2e8f0' : '#1e293b'
+      const qrLight = isDark.value ? '#1e293b' : '#ffffff'
       const qrSvg = await QRCode.toString(item.url, {
         type: 'svg',
         margin: 2,
-        color: { dark: '#1e293b', light: '#ffffff' }
+        color: { dark: qrDark, light: qrLight }
       })
       const svgMatch = qrSvg.match(/<svg[\s\S]*?<\/svg>/)
       if (svgMatch) {
@@ -192,13 +197,13 @@ const handlePrint = () => {
     alert('Please fill in at least Name and Email before exporting.')
     return
   }
-  printCV(cvData.value, locale.value)
+  printCV(cvData.value, locale.value, isDark.value)
 }
 </script>
 
 <style scoped>
 .preview-panel {
-  background: white;
+  background: var(--bg-card, #ffffff);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -248,7 +253,7 @@ const handlePrint = () => {
 
 .auto-refresh-label {
   font-size: 13px;
-  color: #475569;
+  color: var(--text-secondary, #475569);
   user-select: none;
   cursor: pointer;
   display: inline-flex;
@@ -263,10 +268,10 @@ const handlePrint = () => {
 }
 
 .preview-container {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--preview-border, #e2e8f0);
   border-radius: 4px;
   overflow: hidden;
-  background: #f1f5f9;
+  background: var(--preview-bg, #f1f5f9);
 }
 
 .preview-iframe {
