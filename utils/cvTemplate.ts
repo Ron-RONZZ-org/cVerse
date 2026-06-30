@@ -449,13 +449,17 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   }
 
   /*
-   * html background fills the viewport/page area uniformly.
-   * Chrome's print engine clips body backgrounds below fragmented
-   * content, but html backgrounds reliably span every printed page.
-   * During screen preview we hide it via @media screen override.
+   * Repeating gradient on html guarantees every printed page fragment
+   * gets the full background color. Chrome slices the html background
+   * across page boundaries; a repeating-linear-gradient with a 297mm
+   * (one page height) cycle keeps each page filled uniformly.
    */
   html {
-    background: #ffffff;
+    background: repeating-linear-gradient(
+      to bottom,
+      #ffffff 0mm,
+      #ffffff 297mm
+    );
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -800,10 +804,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   /* ── Print only ── */
   @media print {
-    html {
-      background: #ffffff;
-    }
-
     body {
       background: transparent;
     }
@@ -826,7 +826,11 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   /* ── Dark mode overrides (must come before @media screen) ── */
   html.dark {
-    background: #1e293b;
+    background: repeating-linear-gradient(
+      to bottom,
+      #1e293b 0mm,
+      #1e293b 297mm
+    );
   }
 
   /*
