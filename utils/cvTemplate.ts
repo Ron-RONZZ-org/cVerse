@@ -468,6 +468,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     width: 210mm;
     min-height: 297mm;
     margin: 0 auto;
+    background: #ffffff;
     position: relative;
   }
 
@@ -846,7 +847,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   }
 
   html.dark .cv-page {
-    /* background moved to ::before for print reliability */
+    background: #1e293b;
   }
   html.dark .cv-page::before {
     background: #1e293b;
@@ -907,6 +908,11 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
       box-shadow: 0 2px 16px rgba(0,0,0,0.08);
       margin: 16px auto;
       border-radius: 2px;
+    }
+
+    /* Hide the fixed ::before on screen — it covers the viewport */
+    .cv-page::before {
+      background: transparent !important;
     }
   }
 </style>
