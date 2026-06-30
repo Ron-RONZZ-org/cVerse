@@ -152,6 +152,12 @@
     "refresh": "Rafraîchir l'aperçu",
     "autoRefresh": "Auto-raffraîchir"
   },
+  "layout": {
+    "modeSplit": "Vue partagée",
+    "modePreview": "Aperçu plein écran",
+    "modeForm": "Formulaire seulement",
+    "toggleMenu": "Changer la disposition"
+  },
   "sort": {
     "newest": "Trier : Plus récent d'abord",
     "oldest": "Trier : Plus ancien d'abord"

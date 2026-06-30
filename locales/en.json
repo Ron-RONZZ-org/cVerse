@@ -152,6 +152,12 @@
     "refresh": "Refresh Preview",
     "autoRefresh": "Auto-refresh"
   },
+  "layout": {
+    "modeSplit": "Split view",
+    "modePreview": "Preview fullscreen",
+    "modeForm": "Form only",
+    "toggleMenu": "Toggle layout menu"
+  },
   "sort": {
     "newest": "Sort: Newest First",
     "oldest": "Sort: Oldest First"

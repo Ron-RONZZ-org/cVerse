@@ -8,12 +8,20 @@
             <option value="en">English</option>
             <option value="fr">Français</option>
           </select>
+          <!-- Persistent layout mode toggle (always visible) -->
+          <button
+            class="header-layout-toggle"
+            :title="t('layout.toggleMenu')"
+            @click="cycleLayoutMode"
+          >
+            <span class="layout-mode-icon" v-html="layoutIcon"></span>
+          </button>
         </div>
       </div>
     </header>
     
-    <main class="layout">
-      <div class="form-pane">
+    <SplitPane>
+      <template #default>
         <PersonalInfoForm />
 
         <!-- Headline -->
@@ -351,13 +359,12 @@
             </div>
           </div>
         </div>
-      </div>
+      </template>
 
-      <!-- Preview pane (right side) -->
-      <div class="preview-pane">
+      <template #preview>
         <CVPreview />
-      </div>
-    </main>
+      </template>
+    </SplitPane>
   </div>
 </template>
 
@@ -365,8 +372,27 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLanguages } from '~/data/languages'
+import { useLayoutState } from '~/composables/useLayoutState'
 
 const { t, locale } = useI18n()
+const layoutState = useLayoutState()
+
+// Cycle through layout modes: split → preview → form → split
+function cycleLayoutMode() {
+  const modes = ['split', 'preview', 'form'] as const
+  const current = layoutState.mode.value
+  const nextIndex = (modes.indexOf(current) + 1) % modes.length
+  layoutState.setMode(modes[nextIndex])
+}
+
+const layoutIcon = computed(() => {
+  switch (layoutState.mode.value) {
+    case 'preview': return '&#x25A3;'  // ▣
+    case 'form': return '&#x2630;'      // ☰
+    default: return '&#x229E;'           // ⊞
+  }
+})
+
 const { 
   cvData, 
   loadFromStorage,
@@ -395,6 +421,7 @@ const languageOptions = computed(() => useLanguages(locale.value))
 // Load data from localStorage on mount
 onMounted(() => {
   loadFromStorage()
+  layoutState.loadFromStorage()
 })
 
 const triggerQRFileInput = (itemId: string) => {
@@ -470,40 +497,37 @@ body {
   color: #2c3e50;
 }
 
+.header-layout-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s;
+  line-height: 1;
+}
+
+.header-layout-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+}
+
+.layout-mode-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 24px;
-  align-items: start;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.form-pane {
-  min-width: 0;
-  overflow-y: auto;
-}
-
-.preview-pane {
-  position: sticky;
-  top: 20px;
-}
-
-@media (max-width: 1024px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-  
-  .preview-pane {
-    position: static;
-  }
 }
 
 .toolbar {
@@ -784,7 +808,7 @@ textarea.full-width:focus {
   .header h1 {
     font-size: 1.5rem;
   }
-  
+
   .toolbar {
     flex-direction: column;
   }

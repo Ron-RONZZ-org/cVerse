@@ -33,6 +33,7 @@
           <input type="checkbox" v-model="autoRefresh" />
           <span>{{ t('preview.autoRefresh') }}</span>
         </label>
+        <LayoutToggle />
       </div>
       <div ref="previewContainer" class="preview-container">
         <iframe
