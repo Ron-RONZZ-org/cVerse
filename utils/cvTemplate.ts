@@ -445,6 +445,10 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   @page {
     size: A4;
+    margin: 8mm 0 0 0;
+  }
+
+  @page :first {
     margin: 0;
   }
 
