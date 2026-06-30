@@ -445,10 +445,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   @page {
     size: A4;
-    margin: 8mm 0 0 0;
-  }
-
-  @page :first {
     margin: 0;
   }
 
@@ -600,6 +596,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   /* ── Entry (experience/education) ── */
   .entry {
+    margin-top: 5mm;
     margin-bottom: 3mm;
     page-break-inside: avoid;
   }
