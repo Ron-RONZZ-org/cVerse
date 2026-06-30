@@ -89,8 +89,12 @@ function migrateOldData(data: Record<string, unknown>): void {
     }
   }
 
-  // Determine showStrength from old mode, default to false
-  data.qualitiesShowStrength = oldMode === 'polygon'
+  // Migrate showStrength from old mode (only when migrating from old system)
+  if (oldMode !== undefined) {
+    data.qualitiesShowStrength = oldMode === 'polygon'
+  } else if (data.qualitiesShowStrength === undefined) {
+    (data as Record<string, unknown>).qualitiesShowStrength = false
+  }
 
   // Default export theme to light for backward compatibility
   if (!data.exportTheme) (data as Record<string, unknown>).exportTheme = 'light'
