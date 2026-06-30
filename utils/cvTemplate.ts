@@ -1,4 +1,5 @@
 import type { CVData, CEFRLevel } from '~/types/cv'
+import { desaturateColor } from './color'
 
 // ─── Inline markdown to HTML ────────────────────────────────────────
 
@@ -89,7 +90,7 @@ function languageBar(level: CEFRLevel, accent: string, locale: string): string {
   const pct = ((idx + 1) / CEFR_ORDER.length) * 100
   return `
     <div class="lang-bar-bg">
-      <div class="lang-bar-fill" style="width:${pct}%;background:${accent}"></div>
+      <div class="lang-bar-fill" style="width:${pct}%;background:${effectiveAccent}"></div>
     </div>
     <span class="lang-level">${labels[level] || level}</span>`
 }
@@ -103,7 +104,7 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
       `<div class="polygon-fallback-row">
         <span class="polygon-fallback-name">${escapeHtml(a.name)}</span>
         <div class="polygon-fallback-bar-bg">
-          <div class="polygon-fallback-bar-fill" style="width:${(a.score / 5) * 100}%;background:${accent}"></div>
+          <div class="polygon-fallback-bar-fill" style="width:${(a.score / 5) * 100}%;background:${effectiveAccent}"></div>
         </div>
         <span class="polygon-fallback-score">${a.score}/5</span>
       </div>`
@@ -229,14 +230,14 @@ function renderStrengthPolygon(attributes: { name: string; score: number }[], ac
         return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${gridStroke}" stroke-width="1" />`
       }).join('\n')}
       <!-- Data polygon -->
-      <polygon points="${points}" fill="${accent}30" stroke="${accent}" stroke-width="2" />
+      <polygon points="${points}" fill="${effectiveAccent}30" stroke="${effectiveAccent}" stroke-width="2" />
       <!-- Data points -->
       ${attributes.map((a, i) => {
         const angle = startAngle + i * angleStep
         const r = (a.score / 5) * radius
         const x = cx + r * Math.cos(angle)
         const y = cy + r * Math.sin(angle)
-        return `<circle cx="${x}" cy="${y}" r="4" fill="${accent}" />`
+        return `<circle cx="${x}" cy="${y}" r="4" fill="${effectiveAccent}" />`
       }).join('\n')}
       <!-- Labels -->
       ${labels}
@@ -315,6 +316,9 @@ function tStr(key: string, locale: string): string {
 
 export function renderCV(data: CVData, locale: string, darkMode = false): string {
   const accent = data.accentColor || '#2563eb'
+  const effectiveAccent = data.accentSaturation !== undefined && data.accentSaturation < 100
+    ? desaturateColor(accent, 100 - data.accentSaturation)
+    : accent
   const name = escapeHtml(data.personal.name || '')
   const headline = data.personal.headline ? escapeHtml(data.personal.headline) : ''
   const photo = data.personal.photo || ''
@@ -358,7 +362,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
           ${exp.description ? `<div class="entry-body">${mdToHtml(exp.description)}</div>` : ''}
         </div>`
     }).join('\n')
-    sections.push(sectionBlock(tStr('experience', locale), items, accent))
+    sections.push(sectionBlock(tStr('experience', locale), items, effectiveAccent))
   }
 
   // ── Education ──
@@ -376,7 +380,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
           ${edu.description ? `<div class="entry-body">${mdToHtml(edu.description)}</div>` : ''}
         </div>`
     }).join('\n')
-    sections.push(sectionBlock(tStr('education', locale), items, accent))
+    sections.push(sectionBlock(tStr('education', locale), items, effectiveAccent))
   }
 
   // ── Languages ──
@@ -384,34 +388,34 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     const items = data.languages.map(lang =>
       `<div class="lang-row">
         <span class="lang-name">${escapeHtml(lang.name)}</span>
-        ${languageBar(lang.level, accent, locale)}
+        ${languageBar(lang.level, effectiveAccent, locale)}
       </div>`
     ).join('\n')
-    sections.push(sectionBlock(tStr('languages', locale), items, accent))
+    sections.push(sectionBlock(tStr('languages', locale), items, effectiveAccent))
   }
 
   // ── Qualities ──
   if (data.qualityAttributes.length > 0) {
     const body = data.qualitiesShowStrength
-      ? renderStrengthPolygon(data.qualityAttributes, accent, darkMode)
-      : renderSimpleList(data.qualityAttributes, accent)
-    sections.push(sectionBlock(tStr('qualities', locale), body, accent))
+      ? renderStrengthPolygon(data.qualityAttributes, effectiveAccent, darkMode)
+      : renderSimpleList(data.qualityAttributes, effectiveAccent)
+    sections.push(sectionBlock(tStr('qualities', locale), body, effectiveAccent))
   }
 
   // ── Skills ──
   if (data.skills.trim()) {
-    sections.push(sectionBlock(tStr('skills', locale), mdToHtml(data.skills), accent))
+    sections.push(sectionBlock(tStr('skills', locale), mdToHtml(data.skills), effectiveAccent))
   }
 
   // ── Interests ──
   if (data.interests.trim()) {
-    sections.push(sectionBlock(tStr('interests', locale), mdToHtml(data.interests), accent))
+    sections.push(sectionBlock(tStr('interests', locale), mdToHtml(data.interests), effectiveAccent))
   }
 
   // ── Custom Sections ──
   for (const cs of data.customSections) {
     if (cs.title.trim() && cs.content.trim()) {
-      sections.push(sectionBlock(escapeHtml(cs.title), mdToHtml(cs.content), accent))
+      sections.push(sectionBlock(escapeHtml(cs.title), mdToHtml(cs.content), effectiveAccent))
     }
   }
 
@@ -495,7 +499,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   /* ── Accent top bar ── */
   .accent-bar {
     height: 5mm;
-    background: ${accent};
+    background: ${effectiveAccent};
   }
 
   /* ── Header ── */
@@ -518,7 +522,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   .cv-headline {
     font-size: 11pt;
-    color: ${accent};
+    color: ${effectiveAccent};
     font-weight: 500;
     margin-top: 2mm;
   }
@@ -529,13 +533,13 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     height: 32mm;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid ${accent}20;
+    border: 2px solid ${effectiveAccent}20;
   }
 
   /* ── Contact divider ── */
   .contact-divider {
     height: 1.5px;
-    background: linear-gradient(to right, ${accent}, ${accent}40, transparent);
+    background: linear-gradient(to right, ${effectiveAccent}, ${effectiveAccent}40, transparent);
     margin: 0 12mm;
   }
 
@@ -555,7 +559,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   .contact-label {
     font-weight: 600;
-    color: ${accent};
+    color: ${effectiveAccent};
     margin-right: 1mm;
   }
 
@@ -584,13 +588,13 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     gap: 3mm;
     margin-bottom: 2.5mm;
     padding-bottom: 0.8mm;
-    border-bottom: 1.5px solid ${accent};
+    border-bottom: 1.5px solid ${effectiveAccent};
   }
 
   .section-title {
     font-size: 11pt;
     font-weight: 700;
-    color: ${accent};
+    color: ${effectiveAccent};
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -616,7 +620,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   .entry-period {
     font-size: 9pt;
-    color: ${accent};
+    color: ${effectiveAccent};
     font-weight: 500;
     white-space: nowrap;
   }
@@ -797,7 +801,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     content: "•";
     position: absolute;
     left: 1.5mm;
-    color: ${accent};
+    color: ${effectiveAccent};
     font-weight: bold;
   }
 
@@ -806,7 +810,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   }
 
   a {
-    color: ${accent};
+    color: ${effectiveAccent};
     text-decoration: none;
   }
 

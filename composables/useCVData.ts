@@ -98,6 +98,9 @@ function migrateOldData(data: Record<string, unknown>): void {
 
   // Default export theme to light for backward compatibility
   if (!data.exportTheme) (data as Record<string, unknown>).exportTheme = 'light'
+
+  // Default accentSaturation to 100 if missing (backward compat)
+  if (data.accentSaturation === undefined) (data as Record<string, unknown>).accentSaturation = 100
 }
 
 const emptyCV = (): CVData => ({
@@ -130,7 +133,8 @@ const emptyCV = (): CVData => ({
     enabled: false,
     text: ''
   },
-  exportTheme: 'light'
+  exportTheme: 'light',
+  accentSaturation: 100
 })
 
 export const useCVData = () => {

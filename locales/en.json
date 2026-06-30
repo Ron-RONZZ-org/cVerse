@@ -46,7 +46,8 @@
   },
   "settings": {
     "title": "CV Style Settings",
-    "accentColor": "Accent Color"
+    "accentColor": "Accent Color",
+    "colorSaturation": "Color Saturation"
   },
   "experience": {
     "title": "Professional Experience",
