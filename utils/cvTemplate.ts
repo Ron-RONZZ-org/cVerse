@@ -445,10 +445,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   @page {
     size: A4;
-    margin: 10mm 0 0 0;
-  }
-
-  @page :first {
     margin: 0;
   }
 
@@ -468,7 +464,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
     margin: 0 auto;
     background: #ffffff;
     position: relative;
-    overflow: hidden;
   }
 
   /* ── Accent top bar ── */
@@ -548,8 +543,13 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   }
 
   .section {
+    margin-top: 8mm;
     margin-bottom: 5mm;
     page-break-inside: avoid;
+  }
+
+  .section:first-of-type {
+    margin-top: 0;
   }
 
   .section-header {
@@ -742,7 +742,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   /* ── Footer ── */
   .cv-footer {
     text-align: center;
-    padding: 3mm 12mm 5mm 12mm;
+    padding: 3mm 12mm 10mm 12mm;
     font-size: 7.5pt;
     color: #94a3b8;
     border-top: 1px solid #e2e8f0;
