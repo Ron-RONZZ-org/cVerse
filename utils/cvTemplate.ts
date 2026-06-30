@@ -445,10 +445,6 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   @page {
     size: A4;
-    margin: 8mm 0 0 0;
-  }
-
-  @page :first {
     margin: 0;
   }
 
@@ -481,21 +477,13 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
    * guarantees a full background on every page — including the last
    * page below the content area.
    */
-  /*
-   * Fixed pseudo-element extends above the content area into the
-   * @page margin, filling it with the page background color.
-   * On page 2+ the 8mm @page margin would normally be blank white;
-   * with top: -8mm and height: calc(100% + 8mm) the ::before bleeds
-   * upward into that margin, giving it the correct color.
-   * Chrome replicates position:fixed elements on every printed page.
-   */
   .cv-page::before {
     content: '';
     position: fixed;
-    top: -8mm;
+    top: 0;
     left: 0;
     width: 100%;
-    height: calc(100% + 8mm);
+    height: 100%;
     background: #ffffff;
     z-index: -1;
     -webkit-print-color-adjust: exact;

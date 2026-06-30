@@ -36,5 +36,28 @@ Chrome's print engine **replicates `position: fixed` elements on every printed p
 ## Usage in cVerse
 Implemented in `utils/cvTemplate.ts` as `.cv-page::before`. Dark mode variant via `html.dark .cv-page::before { background: #1e293b; }`. The `.cv-page` itself no longer sets `background` (it's delegated to `::before`).
 
+## Final Implementation
+```css
+@page { size: A4; margin: 8mm 0 0 0; }
+@page :first { margin: 0; }
+
+.cv-page::before {
+  content: '';
+  position: fixed;
+  top: -8mm;              /* bleed up into @page margin */
+  left: 0;
+  width: 100%;
+  height: calc(100% + 8mm); /* cover margin + content area */
+  background: #ffffff;
+  z-index: -1;
+  -webkit-print-color-adjust: exact;
+  pointer-events: none;
+}
+html.dark .cv-page::before { background: #1e293b; }
+```
+
+The ::before extends 8mm above the content area, filling the
+@page margin with the page background color. On page 1 the
+extension is harmlessly clipped at the page boundary.
+
 ## Key Insight
-This is not a "background rendering" problem — it's a "positioning" problem. The fix comes from understanding Chrome's print-specific behavior of `position: fixed`, not from CSS background properties.
