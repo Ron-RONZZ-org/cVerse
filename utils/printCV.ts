@@ -6,20 +6,22 @@ import QRCode from 'qrcode'
  * Opens the CV in a hidden iframe and triggers the browser's print dialog.
  * The user can then choose "Save as PDF" to export a professional PDF.
  */
-export async function printCV(data: CVData, locale: string): Promise<void> {
-  let html = renderCV(data, locale)
+export async function printCV(data: CVData, locale: string, darkMode = false): Promise<void> {
+  let html = renderCV(data, locale, darkMode)
 
   // Inject QR codes for each item
   if (data.qrCode.enabled && data.qrCode.items.length > 0) {
     for (const item of data.qrCode.items) {
       if (!item.url) continue
       try {
+        const qrDark = darkMode ? '#e2e8f0' : '#1e293b'
+        const qrLight = darkMode ? '#1e293b' : '#ffffff'
         const qrSvg = await QRCode.toString(item.url, {
           type: 'svg',
           margin: 2,
           color: {
-            dark: '#1e293b',
-            light: '#ffffff'
+            dark: qrDark,
+            light: qrLight
           }
         })
         const svgMatch = qrSvg.match(/<svg[\s\S]*?<\/svg>/)

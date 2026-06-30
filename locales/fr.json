@@ -169,5 +169,8 @@
     "qualities": "Qualités",
     "skills": "Compétences",
     "interests": "Centres d'Intérêt"
+  },
+  "theme": {
+    "toggle": "Basculer thème clair/sombre"
   }
 }
