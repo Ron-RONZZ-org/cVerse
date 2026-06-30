@@ -87,6 +87,7 @@ export interface CVData {
   qrCode: QRCodeConfig
   footer: FooterConfig
   exportTheme: 'light' | 'dark'
+  accentSaturation: number  // 0-100, default 100 (fully saturated)
 }
 
 // Dropdown data types

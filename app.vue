@@ -87,6 +87,10 @@
               <span class="color-value">{{ cvData.accentColor }}</span>
             </div>
           </div>
+          <div class="form-group">
+            <label>{{ t('settings.colorSaturation') }}: {{ cvData.accentSaturation }}%</label>
+            <input v-model.number="cvData.accentSaturation" type="range" min="0" max="100" class="slider" />
+          </div>
         </div>
 
         <!-- Professional Experience -->

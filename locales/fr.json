@@ -46,7 +46,8 @@
   },
   "settings": {
     "title": "Paramètres de Style du CV",
-    "accentColor": "Couleur d'Accentuation"
+    "accentColor": "Couleur d'Accentuation",
+    "colorSaturation": "Saturation des Couleurs"
   },
   "experience": {
     "title": "Expérience Professionnelle",
