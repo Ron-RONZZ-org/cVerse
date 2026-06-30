@@ -539,7 +539,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   /* ── Sections ── */
   .cv-sections {
-    padding: 4mm 12mm 8mm 12mm;
+    padding: 4mm 12mm 15mm 12mm;
   }
 
   .section {
@@ -742,7 +742,7 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   /* ── Footer ── */
   .cv-footer {
     text-align: center;
-    padding: 3mm 12mm 10mm 12mm;
+    padding: 3mm 12mm 30mm 12mm;
     font-size: 7.5pt;
     color: #94a3b8;
     border-top: 1px solid #e2e8f0;
@@ -786,8 +786,14 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
 
   /* ── Print only ── */
   @media print {
-    body {
+    html {
       background: #ffffff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      background: transparent;
     }
 
     .cv-page {
@@ -863,8 +869,11 @@ export function renderCV(data: CVData, locale: string, darkMode = false): string
   }
 
   @media print {
-    html.dark body {
+    html.dark {
       background: #1e293b;
+    }
+    html.dark body {
+      background: transparent;
     }
   }
 </style>
